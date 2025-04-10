@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.marvinformatics.jacoco</groupId>
+  <artifactId>easy-jacoco-maven-plugin</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>easy-jacoco-maven-plugin</name>
+  <description>This project aims at making jacoco easy on modular projects.
+
+Runs all things a project need on all modules automatically.
+All modules will prepare (for unit and integrationtests)
+All modules will report (for unit and integrationtests)
+All modules can be checked (for unit and integrationtests)
+
+So far, all things you can do on parent pom, with a few lines.
+
+The juicy bits:
+
+PROJECT wide coverage report (aka report-aggregate) with zero configuration
+PROJECT wide coverage check, so you can requite the whole project to have 70% code coverage</description>
+
+  <properties>
+    <maven.version>3.9.9</maven.version>
+    <jacoco.version>0.8.13</jacoco.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <release>17</release>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.sisu</groupId>
+        <artifactId>sisu-maven-plugin</artifactId>
+        <version>0.9.0.M3</version>
+        <executions>
+          <execution>
+            <id>generate-index</id>
+            <goals>
+              <goal>main-index</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.11.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JaCoCo plugin (for version reference only, not used at runtime) -->
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.core</artifactId>
+      <version>${jacoco.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.report</artifactId>
+      <version>${jacoco.version}</version>
+    </dependency>
+  </dependencies>
+  <dependencyManagement>
+  	<dependencies>
+  		<dependency>
+  			<groupId>org.codehaus.plexus</groupId>
+  			<artifactId>plexus-utils</artifactId>
+  			<version>3.5.1</version>
+  			<!-- maven runs with a different version, causing all short of class not found issues-->
+  			<scope>runtime</scope>
+  		</dependency>
+  	</dependencies>
+  </dependencyManagement>
+</project>
