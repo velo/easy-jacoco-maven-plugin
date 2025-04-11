@@ -38,6 +38,7 @@ The juicy bits:
 
 PROJECT wide coverage report (aka report-aggregate) with zero configuration
 PROJECT wide coverage check, so you can requite the whole project to have 70% code coverage</description>
+  <url>https://github.com/velo/easy-jacoco-maven-plugin</url>
 
   <licenses>
     <license>
@@ -73,6 +74,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
     <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
     <sortpom.plugin.version>4.0.0</sortpom.plugin.version>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
