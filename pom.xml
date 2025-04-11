@@ -129,7 +129,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <release>17</release>
+          <release>11</release>
         </configuration>
       </plugin>
 

@@ -84,7 +84,8 @@ public class PersistProjectForReportMojo extends AbstractMojo {
 
     if (projectOpt.isEmpty()) {
       throw new MojoExecutionException(
-          "Module not found %s:%s:%s".formatted(reportGroupId, reportArtifactId, reportVersion));
+          String.format(
+              "Module not found %s:%s:%s", reportGroupId, reportArtifactId, reportVersion));
     }
 
     var project = projectOpt.get();
@@ -121,20 +122,20 @@ public class PersistProjectForReportMojo extends AbstractMojo {
       return true;
     }
 
-    if (obj instanceof Optional<?> optional) {
-      return optional.isEmpty();
+    if (obj instanceof Optional<?>) {
+      return ((Optional) obj).isEmpty();
     }
-    if (obj instanceof CharSequence charSequence) {
-      return charSequence.isEmpty();
+    if (obj instanceof CharSequence) {
+      return ((CharSequence) obj).length() == 0;
     }
     if (obj.getClass().isArray()) {
       return Array.getLength(obj) == 0;
     }
-    if (obj instanceof Collection<?> collection) {
-      return collection.isEmpty();
+    if (obj instanceof Collection<?>) {
+      return ((Collection) obj).isEmpty();
     }
-    if (obj instanceof Map<?, ?> map) {
-      return map.isEmpty();
+    if (obj instanceof Map<?, ?>) {
+      return ((Map) obj).isEmpty();
     }
 
     // else

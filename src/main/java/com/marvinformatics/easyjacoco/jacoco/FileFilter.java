@@ -64,7 +64,7 @@ public class FileFilter {
           .map(Path::toFile)
           .filter(file -> matches(file, includePatterns, true))
           .filter(file -> !matches(file, excludePatterns, false))
-          .toList();
+          .collect(Collectors.toList());
     }
   }
 

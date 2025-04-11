@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -145,7 +146,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
           reactorProjects.stream()
               .filter(reactorProject -> !reactorProject.equals(project))
               .map(dep -> toDependency(dep))
-              .toList();
+              .collect(Collectors.toList());
       pom.setDependencies(dependencies);
 
       modelWriter.write(generatedPom, null, pom);
