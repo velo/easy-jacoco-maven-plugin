@@ -1,3 +1,18 @@
+/*
+ * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.marvinformatics.easyjacoco.jacoco;
 
 import static java.lang.String.format;
@@ -10,7 +25,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.jacoco.core.analysis.Analyzer;
@@ -27,248 +41,240 @@ import org.jacoco.report.check.Rule;
 import org.jacoco.report.check.RulesChecker;
 
 /**
- * Encapsulates the tasks to create reports for Maven projects. Instances are
- * supposed to be used in the following sequence:
+ * Encapsulates the tasks to create reports for Maven projects. Instances are supposed to be used in
+ * the following sequence:
  *
  * <ol>
- * <li>Create an instance</li>
- * <li>Load one or multiple exec files with
- * <code>loadExecutionData()</code></li>
- * <li>Add one or multiple formatters with <code>addXXX()</code> methods</li>
- * <li>Create the root visitor with <code>initRootVisitor()</code></li>
- * <li>Process one or multiple projects with <code>processProject()</code></li>
+ *   <li>Create an instance
+ *   <li>Load one or multiple exec files with <code>loadExecutionData()</code>
+ *   <li>Add one or multiple formatters with <code>addXXX()</code> methods
+ *   <li>Create the root visitor with <code>initRootVisitor()</code>
+ *   <li>Process one or multiple projects with <code>processProject()</code>
  * </ol>
  */
 public class ReportSupport {
 
-	private final Log log;
-	private final ExecFileLoader loader;
-	private final List<IReportVisitor> formatters;
+  private final Log log;
+  private final ExecFileLoader loader;
+  private final List<IReportVisitor> formatters;
 
-	/**
-	 * Construct a new instance with the given log output.
-	 *
-	 * @param log
-	 *            for log output
-	 */
-	public ReportSupport(final Log log) {
-		this.log = log;
-		this.loader = new ExecFileLoader();
-		this.formatters = new ArrayList<IReportVisitor>();
-	}
+  /**
+   * Construct a new instance with the given log output.
+   *
+   * @param log for log output
+   */
+  public ReportSupport(final Log log) {
+    this.log = log;
+    this.loader = new ExecFileLoader();
+    this.formatters = new ArrayList<IReportVisitor>();
+  }
 
-	/**
-	 * Loads the given execution data file.
-	 *
-	 * @param execFile
-	 *            execution data file to load
-	 * @throws IOException
-	 *             if the file can't be loaded
-	 */
-	public void loadExecutionData(final File execFile) throws IOException {
-		log.info("Loading execution data file " + execFile);
-		loader.load(execFile);
-	}
+  /**
+   * Loads the given execution data file.
+   *
+   * @param execFile execution data file to load
+   * @throws IOException if the file can't be loaded
+   */
+  public void loadExecutionData(final File execFile) throws IOException {
+    log.info("Loading execution data file " + execFile);
+    loader.load(execFile);
+  }
 
-	public void addVisitor(final IReportVisitor visitor) {
-		formatters.add(visitor);
-	}
+  public void addVisitor(final IReportVisitor visitor) {
+    formatters.add(visitor);
+  }
 
-	public void addRulesChecker(final List<Rule> rules,
-			final IViolationsOutput output) {
-		final RulesChecker checker = new RulesChecker();
-		checker.setRules(rules);
-		formatters.add(checker.createVisitor(output));
-	}
+  public void addRulesChecker(final List<Rule> rules, final IViolationsOutput output) {
+    final RulesChecker checker = new RulesChecker();
+    checker.setRules(rules);
+    formatters.add(checker.createVisitor(output));
+  }
 
-	public IReportVisitor initRootVisitor() throws IOException {
-		final IReportVisitor visitor = new MultiReportVisitor(formatters);
-		visitor.visitInfo(loader.getSessionInfoStore().getInfos(),
-				loader.getExecutionDataStore().getContents());
-		return visitor;
-	}
+  public IReportVisitor initRootVisitor() throws IOException {
+    final IReportVisitor visitor = new MultiReportVisitor(formatters);
+    visitor.visitInfo(
+        loader.getSessionInfoStore().getInfos(), loader.getExecutionDataStore().getContents());
+    return visitor;
+  }
 
-	/**
-	 * Calculates coverage for the given project and emits it to the report
-	 * group without source references
-	 *
-	 * @param visitor
-	 *            group visitor to emit the project's coverage to
-	 * @param projects
-	 *            the MavenProjects
-	 * @param includes
-	 *            list of includes patterns
-	 * @param excludes
-	 *            list of excludes patterns
-	 * @throws IOException
-	 *             if class files can't be read
-	 */
-	public void processProjects(final IReportGroupVisitor visitor,
-			final List<MavenProject> projects, final List<String> includes,
-			final List<String> excludes) throws IOException {
-		processProjects(visitor, projects, includes,
-				excludes, new NoSourceLocator());
-	}
+  /**
+   * Calculates coverage for the given project and emits it to the report group without source
+   * references
+   *
+   * @param visitor group visitor to emit the project's coverage to
+   * @param projects the MavenProjects
+   * @param includes list of includes patterns
+   * @param excludes list of excludes patterns
+   * @throws IOException if class files can't be read
+   */
+  public void processProjects(
+      final IReportGroupVisitor visitor,
+      final List<MavenProject> projects,
+      final List<String> includes,
+      final List<String> excludes)
+      throws IOException {
+    processProjects(visitor, projects, includes, excludes, new NoSourceLocator());
+  }
 
-	/**
-	 * Calculates coverage for the given project and emits it to the report
-	 * group including source references
-	 *
-	 * @param visitor
-	 *            group visitor to emit the project's coverage to
-	 * @param bundleName
-	 *            name for this project in the report
-	 * @param project
-	 *            the MavenProject
-	 * @param includes
-	 *            list of includes patterns
-	 * @param excludes
-	 *            list of excludes patterns
-	 * @param srcEncoding
-	 *            encoding of the source files within this project
-	 * @throws IOException
-	 *             if class files can't be read
-	 */
-	public void processProject(final IReportGroupVisitor visitor,
-			final String bundleName, final MavenProject project,
-			final List<String> includes, final List<String> excludes,
-			final String srcEncoding) throws IOException {
-		processProject(visitor, bundleName, project, includes, excludes,
-				new SourceFileCollection(project, srcEncoding));
-	}
+  /**
+   * Calculates coverage for the given project and emits it to the report group including source
+   * references
+   *
+   * @param visitor group visitor to emit the project's coverage to
+   * @param bundleName name for this project in the report
+   * @param project the MavenProject
+   * @param includes list of includes patterns
+   * @param excludes list of excludes patterns
+   * @param srcEncoding encoding of the source files within this project
+   * @throws IOException if class files can't be read
+   */
+  public void processProject(
+      final IReportGroupVisitor visitor,
+      final String bundleName,
+      final MavenProject project,
+      final List<String> includes,
+      final List<String> excludes,
+      final String srcEncoding)
+      throws IOException {
+    processProject(
+        visitor,
+        bundleName,
+        project,
+        includes,
+        excludes,
+        new SourceFileCollection(project, srcEncoding));
+  }
 
-	private void processProjects(final IReportGroupVisitor visitor,
-			 final List<MavenProject> projects,
-			final List<String> includes, final List<String> excludes,
-			final ISourceFileLocator locator) throws IOException {
-		final CoverageBuilder builder = new CoverageBuilder();
-		
-		for (MavenProject project : projects) {
-			final File classesDir = new File(
-					project.getBuild().getOutputDirectory());
-			
-			if (classesDir.isDirectory()) {
-				final Analyzer analyzer = new Analyzer(
-						loader.getExecutionDataStore(), builder);
-				final FileFilter filter = new FileFilter(includes, excludes);
-				for (final File file : filter.getFiles(classesDir)) {
-					analyzer.analyzeAll(file);
-				}
-			}
-		}
-		
-		final IBundleCoverage bundle = builder.getBundle("project");
-		logBundleInfo(bundle, builder.getNoMatchClasses());
-		
-		visitor.visitBundle(bundle, locator);
-	}
-	private void processProject(final IReportGroupVisitor visitor,
-			final String bundleName, final MavenProject project,
-			final List<String> includes, final List<String> excludes,
-			final ISourceFileLocator locator) throws IOException {
-		final CoverageBuilder builder = new CoverageBuilder();
-		final File classesDir = new File(
-				project.getBuild().getOutputDirectory());
+  private void processProjects(
+      final IReportGroupVisitor visitor,
+      final List<MavenProject> projects,
+      final List<String> includes,
+      final List<String> excludes,
+      final ISourceFileLocator locator)
+      throws IOException {
+    final CoverageBuilder builder = new CoverageBuilder();
 
-		if (classesDir.isDirectory()) {
-			final Analyzer analyzer = new Analyzer(
-					loader.getExecutionDataStore(), builder);
-			final FileFilter filter = new FileFilter(includes, excludes);
-			for (final File file : filter.getFiles(classesDir)) {
-				analyzer.analyzeAll(file);
-			}
-		}
+    for (MavenProject project : projects) {
+      final File classesDir = new File(project.getBuild().getOutputDirectory());
 
-		final IBundleCoverage bundle = builder.getBundle(bundleName);
-		logBundleInfo(bundle, builder.getNoMatchClasses());
+      if (classesDir.isDirectory()) {
+        final Analyzer analyzer = new Analyzer(loader.getExecutionDataStore(), builder);
+        final FileFilter filter = new FileFilter(includes, excludes);
+        for (final File file : filter.getFiles(classesDir)) {
+          analyzer.analyzeAll(file);
+        }
+      }
+    }
 
-		visitor.visitBundle(bundle, locator);
-	}
+    final IBundleCoverage bundle = builder.getBundle("project");
+    logBundleInfo(bundle, builder.getNoMatchClasses());
 
-	private void logBundleInfo(final IBundleCoverage bundle,
-			final Collection<IClassCoverage> nomatch) {
-		log.info(format("Analyzed bundle '%s' with %s classes",
-				bundle.getName(),
-				Integer.valueOf(bundle.getClassCounter().getTotalCount())));
-		if (!nomatch.isEmpty()) {
-			log.warn(format(
-					"Classes in bundle '%s' do not match with execution data. "
-							+ "For report generation the same class files must be used as at runtime.",
-					bundle.getName()));
-			for (final IClassCoverage c : nomatch) {
-				log.warn(format("Execution data for class %s does not match.",
-						c.getName()));
-			}
-		}
-		if (bundle.containsCode()
-				&& bundle.getLineCounter().getTotalCount() == 0) {
-			log.warn(
-					"To enable source code annotation class files have to be compiled with debug information.");
-		}
-	}
+    visitor.visitBundle(bundle, locator);
+  }
 
-	private static class NoSourceLocator implements ISourceFileLocator {
+  private void processProject(
+      final IReportGroupVisitor visitor,
+      final String bundleName,
+      final MavenProject project,
+      final List<String> includes,
+      final List<String> excludes,
+      final ISourceFileLocator locator)
+      throws IOException {
+    final CoverageBuilder builder = new CoverageBuilder();
+    final File classesDir = new File(project.getBuild().getOutputDirectory());
 
-		public Reader getSourceFile(final String packageName,
-				final String fileName) {
-			return null;
-		}
+    if (classesDir.isDirectory()) {
+      final Analyzer analyzer = new Analyzer(loader.getExecutionDataStore(), builder);
+      final FileFilter filter = new FileFilter(includes, excludes);
+      for (final File file : filter.getFiles(classesDir)) {
+        analyzer.analyzeAll(file);
+      }
+    }
 
-		public int getTabWidth() {
-			return 0;
-		}
-	}
+    final IBundleCoverage bundle = builder.getBundle(bundleName);
+    logBundleInfo(bundle, builder.getNoMatchClasses());
 
-	private static class SourceFileCollection implements ISourceFileLocator {
+    visitor.visitBundle(bundle, locator);
+  }
 
-		private final List<File> sourceRoots;
-		private final String encoding;
+  private void logBundleInfo(
+      final IBundleCoverage bundle, final Collection<IClassCoverage> nomatch) {
+    log.info(
+        format(
+            "Analyzed bundle '%s' with %s classes",
+            bundle.getName(), Integer.valueOf(bundle.getClassCounter().getTotalCount())));
+    if (!nomatch.isEmpty()) {
+      log.warn(
+          format(
+              "Classes in bundle '%s' do not match with execution data. "
+                  + "For report generation the same class files must be used as at runtime.",
+              bundle.getName()));
+      for (final IClassCoverage c : nomatch) {
+        log.warn(format("Execution data for class %s does not match.", c.getName()));
+      }
+    }
+    if (bundle.containsCode() && bundle.getLineCounter().getTotalCount() == 0) {
+      log.warn(
+          "To enable source code annotation class files have to be compiled with debug information.");
+    }
+  }
 
-		public SourceFileCollection(final MavenProject project,
-				final String encoding) {
-			this.sourceRoots = getCompileSourceRoots(project);
-			this.encoding = encoding;
-		}
+  private static class NoSourceLocator implements ISourceFileLocator {
 
-		public Reader getSourceFile(final String packageName,
-				final String fileName) throws IOException {
-			final String r;
-			if (packageName.length() > 0) {
-				r = packageName + '/' + fileName;
-			} else {
-				r = fileName;
-			}
-			for (final File sourceRoot : sourceRoots) {
-				final File file = new File(sourceRoot, r);
-				if (file.exists() && file.isFile()) {
-					return new InputStreamReader(new FileInputStream(file),
-							encoding);
-				}
-			}
-			return null;
-		}
+    public Reader getSourceFile(final String packageName, final String fileName) {
+      return null;
+    }
 
-		public int getTabWidth() {
-			return 4;
-		}
-	}
+    public int getTabWidth() {
+      return 0;
+    }
+  }
 
-	private static List<File> getCompileSourceRoots(
-			final MavenProject project) {
-		final List<File> result = new ArrayList<File>();
-		for (final Object path : project.getCompileSourceRoots()) {
-			result.add(resolvePath(project, (String) path));
-		}
-		return result;
-	}
+  private static class SourceFileCollection implements ISourceFileLocator {
 
-	private static File resolvePath(final MavenProject project,
-			final String path) {
-		File file = new File(path);
-		if (!file.isAbsolute()) {
-			file = new File(project.getBasedir(), path);
-		}
-		return file;
-	}
+    private final List<File> sourceRoots;
+    private final String encoding;
 
+    public SourceFileCollection(final MavenProject project, final String encoding) {
+      this.sourceRoots = getCompileSourceRoots(project);
+      this.encoding = encoding;
+    }
+
+    public Reader getSourceFile(final String packageName, final String fileName)
+        throws IOException {
+      final String r;
+      if (packageName.length() > 0) {
+        r = packageName + '/' + fileName;
+      } else {
+        r = fileName;
+      }
+      for (final File sourceRoot : sourceRoots) {
+        final File file = new File(sourceRoot, r);
+        if (file.exists() && file.isFile()) {
+          return new InputStreamReader(new FileInputStream(file), encoding);
+        }
+      }
+      return null;
+    }
+
+    public int getTabWidth() {
+      return 4;
+    }
+  }
+
+  private static List<File> getCompileSourceRoots(final MavenProject project) {
+    final List<File> result = new ArrayList<File>();
+    for (final Object path : project.getCompileSourceRoots()) {
+      result.add(resolvePath(project, (String) path));
+    }
+    return result;
+  }
+
+  private static File resolvePath(final MavenProject project, final String path) {
+    File file = new File(path);
+    if (!file.isAbsolute()) {
+      file = new File(project.getBasedir(), path);
+    }
+    return file;
+  }
 }

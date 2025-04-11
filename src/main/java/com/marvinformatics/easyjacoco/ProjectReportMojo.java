@@ -1,10 +1,27 @@
+/*
+ * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.marvinformatics.easyjacoco;
 
+import com.marvinformatics.easyjacoco.jacoco.FileFilter;
+import com.marvinformatics.easyjacoco.jacoco.ReportFormat;
+import com.marvinformatics.easyjacoco.jacoco.ReportSupport;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -15,149 +32,134 @@ import org.apache.maven.project.MavenProject;
 import org.jacoco.report.IReportGroupVisitor;
 import org.jacoco.report.IReportVisitor;
 
-import com.marvinformatics.easyjacoco.jacoco.FileFilter;
-import com.marvinformatics.easyjacoco.jacoco.ReportFormat;
-import com.marvinformatics.easyjacoco.jacoco.ReportSupport;
-
-/**
- * Generates an aggregated project report (placeholder).
- */
+/** Generates an aggregated project report (placeholder). */
 @Mojo(name = "report-project", defaultPhase = LifecyclePhase.VERIFY)
 public class ProjectReportMojo extends AbstractMojo {
 
-	/**
-	 * Skip execution of the mojo. Can be set via -Deasyjacoco.skip=true
-	 */
-	@Parameter(property = "easyjacoco.skip", defaultValue = "false")
-	private boolean skip;
+  /** Skip execution of the mojo. Can be set via -Deasyjacoco.skip=true */
+  @Parameter(property = "easyjacoco.skip", defaultValue = "false")
+  private boolean skip;
 
-	@Parameter(defaultValue = "${session}", readonly = true)
-	private MavenSession session;
+  @Parameter(defaultValue = "${session}", readonly = true)
+  private MavenSession session;
 
-	/**
-	 * Output directory for the reports. Note that this parameter is only relevant
-	 * if the goal is run from the command line or from the default build lifecycle.
-	 * If the goal is run indirectly as part of a site generation, the output
-	 * directory configured in the Maven Site Plugin is used instead.
-	 */
-	@Parameter(defaultValue = "${project.reporting.outputDirectory}/jacoco-aggregate")
-	File outputDirectory;
+  /**
+   * Output directory for the reports. Note that this parameter is only relevant if the goal is run
+   * from the command line or from the default build lifecycle. If the goal is run indirectly as
+   * part of a site generation, the output directory configured in the Maven Site Plugin is used
+   * instead.
+   */
+  @Parameter(defaultValue = "${project.reporting.outputDirectory}/jacoco-aggregate")
+  File outputDirectory;
 
-	/**
-	 * Encoding of the generated reports.
-	 */
-	@Parameter(property = "project.reporting.outputEncoding", defaultValue = "UTF-8")
-	String outputEncoding;
+  /** Encoding of the generated reports. */
+  @Parameter(property = "project.reporting.outputEncoding", defaultValue = "UTF-8")
+  String outputEncoding;
 
-	/**
-	 * A list of report formats to generate. Supported formats are HTML, XML and
-	 * CSV. Defaults to all formats if no values are given.
-	 *
-	 * @since 0.8.7
-	 */
-	@Parameter(defaultValue = "HTML,XML,CSV")
-	List<ReportFormat> formats;
+  /**
+   * A list of report formats to generate. Supported formats are HTML, XML and CSV. Defaults to all
+   * formats if no values are given.
+   *
+   * @since 0.8.7
+   */
+  @Parameter(defaultValue = "HTML,XML,CSV")
+  List<ReportFormat> formats;
 
-	/**
-	 * Name of the root node HTML report pages.
-	 *
-	 * @since 0.7.7
-	 */
-	@Parameter(defaultValue = "${project.name}")
-	String title;
+  /**
+   * Name of the root node HTML report pages.
+   *
+   * @since 0.7.7
+   */
+  @Parameter(defaultValue = "${project.name}")
+  String title;
 
-	/**
-	 * Footer text used in HTML report pages.
-	 *
-	 * @since 0.7.7
-	 */
-	@Parameter
-	String footer;
+  /**
+   * Footer text used in HTML report pages.
+   *
+   * @since 0.7.7
+   */
+  @Parameter String footer;
 
-	/**
-	 * Encoding of the source files.
-	 */
-	@Parameter(property = "project.build.sourceEncoding", defaultValue = "UTF-8")
-	String sourceEncoding;
+  /** Encoding of the source files. */
+  @Parameter(property = "project.build.sourceEncoding", defaultValue = "UTF-8")
+  String sourceEncoding;
 
-	/**
-	 * A list of class files to include in the report. May use wildcard characters
-	 * (* and ?). When not specified everything will be included.
-	 */
-	@Parameter
-	List<String> includes;
+  /**
+   * A list of class files to include in the report. May use wildcard characters (* and ?). When not
+   * specified everything will be included.
+   */
+  @Parameter List<String> includes;
 
-	/**
-	 * A list of class files to exclude from the report. May use wildcard characters
-	 * (* and ?). When not specified nothing will be excluded.
-	 */
-	@Parameter
-	List<String> excludes;
+  /**
+   * A list of class files to exclude from the report. May use wildcard characters (* and ?). When
+   * not specified nothing will be excluded.
+   */
+  @Parameter List<String> excludes;
 
-	/**
-	 * A list of execution data files to include in the report from each project.
-	 * May use wildcard characters (* and ?). When not specified all *.exec files
-	 * from the target folder will be included.
-	 */
-	@Parameter
-	List<String> dataFileIncludes;
+  /**
+   * A list of execution data files to include in the report from each project. May use wildcard
+   * characters (* and ?). When not specified all *.exec files from the target folder will be
+   * included.
+   */
+  @Parameter List<String> dataFileIncludes;
 
-	/**
-	 * A list of execution data files to exclude from the report. May use wildcard
-	 * characters (* and ?). When not specified nothing will be excluded.
-	 */
-	@Parameter
-	List<String> dataFileExcludes;
+  /**
+   * A list of execution data files to exclude from the report. May use wildcard characters (* and
+   * ?). When not specified nothing will be excluded.
+   */
+  @Parameter List<String> dataFileExcludes;
 
-	@Override
-	public void execute() throws MojoExecutionException {
-		if (skip) {
-			getLog().info("Project report aggregation skipped via skip configuration");
-			return;
-		}
+  @Override
+  public void execute() throws MojoExecutionException {
+    if (skip) {
+      getLog().info("Project report aggregation skipped via skip configuration");
+      return;
+    }
 
-		getLog().info("Running project aggregation report...");
-		// Future logic here
+    getLog().info("Running project aggregation report...");
+    // Future logic here
 
-		var projectRoot = session.getTopLevelProject().getBasedir();
+    var projectRoot = session.getTopLevelProject().getBasedir();
 
-		try {
-			final ReportSupport support = new ReportSupport(getLog());
-			loadExecutionData(support, projectRoot);
-			outputDirectory.mkdirs();
+    try {
+      final ReportSupport support = new ReportSupport(getLog());
+      loadExecutionData(support, projectRoot);
+      outputDirectory.mkdirs();
 
-			for (final ReportFormat f : formats) {
-				support.addVisitor(f.createVisitor(outputDirectory, outputEncoding, Locale.getDefault(), footer));
-			}
+      for (final ReportFormat f : formats) {
+        support.addVisitor(
+            f.createVisitor(outputDirectory, outputEncoding, Locale.getDefault(), footer));
+      }
 
-			final IReportVisitor visitor = support.initRootVisitor();
-			createReport(visitor, support);
-			visitor.visitEnd();
-		} catch (final IOException e) {
-			throw new MojoExecutionException("Error while creating report: " + e.getMessage(), e);
-		}
-	}
+      final IReportVisitor visitor = support.initRootVisitor();
+      createReport(visitor, support);
+      visitor.visitEnd();
+    } catch (final IOException e) {
+      throw new MojoExecutionException("Error while creating report: " + e.getMessage(), e);
+    }
+  }
 
-	void createReport(final IReportGroupVisitor visitor, final ReportSupport support) throws IOException {
-		final IReportGroupVisitor group = visitor.visitGroup(title);
+  void createReport(final IReportGroupVisitor visitor, final ReportSupport support)
+      throws IOException {
+    final IReportGroupVisitor group = visitor.visitGroup(title);
 
-		for (MavenProject project : session.getAllProjects()) {
-			if(project.getPackaging().equals("pom")) {
-				continue;
-			}
-			support.processProject(group, project.getArtifactId(), project, includes, excludes, sourceEncoding);
-		}
+    for (MavenProject project : session.getAllProjects()) {
+      if (project.getPackaging().equals("pom")) {
+        continue;
+      }
+      support.processProject(
+          group, project.getArtifactId(), project, includes, excludes, sourceEncoding);
+    }
+  }
 
-	}
+  void loadExecutionData(final ReportSupport support, File projectRoot) throws IOException {
+    if (dataFileIncludes == null) {
+      dataFileIncludes = List.of("**/target/*.exec");
+    }
 
-	void loadExecutionData(final ReportSupport support, File projectRoot) throws IOException {
-		if (dataFileIncludes == null) {
-			dataFileIncludes = List.of("**/target/*.exec");
-		}
-
-		final FileFilter filter = new FileFilter(dataFileIncludes, dataFileExcludes);
-		for (final File execFile : filter.getFiles(projectRoot)) {
-			support.loadExecutionData(execFile);
-		}
-	}
+    final FileFilter filter = new FileFilter(dataFileIncludes, dataFileExcludes);
+    for (final File execFile : filter.getFiles(projectRoot)) {
+      support.loadExecutionData(execFile);
+    }
+  }
 }

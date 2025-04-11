@@ -44,6 +44,7 @@ Thumbs.db
 build
 */build
 .m2
+/m2e-target
 
 # IntelliJ specific files/directories
 out
