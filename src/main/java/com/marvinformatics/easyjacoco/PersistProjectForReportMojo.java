@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.internal.LifecycleModuleBuilder;
 import org.apache.maven.lifecycle.internal.LifecycleTaskSegmentCalculator;
@@ -57,6 +58,9 @@ public class PersistProjectForReportMojo extends AbstractMojo {
 
   @Parameter(property = "easyjacoco.report.description")
   private String projectDescription;
+
+  /** Only used by {@link EasyJacocoLifecycleParticipant} */
+  @Parameter Properties projectExtraProperties;
 
   @Component private LifecycleTaskSegmentCalculator segmentCalculator;
   @Component private LifecycleModuleBuilder builder;

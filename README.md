@@ -1,6 +1,9 @@
 # Easy JaCoCo Maven Plugin [![Buid project](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml/badge.svg)](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml)
 
-**Easy JaCoCo Maven Plugin v0.1** simplifies JaCoCo code coverage setup in multi-module Maven projects by automatically gathering coverage data from all modules into a single, aggregated report. The plugin also offers project-wide coverage checks to enforce minimum coverage rules — all through a lean, minimal configuration effort.
+**Easy JaCoCo Maven Plugin** simplifies JaCoCo code coverage setup in multi-module Maven projects by automatically gathering coverage data from all modules into a single, aggregated report. The plugin also offers project-wide coverage checks to enforce minimum coverage rules — all through a lean, minimal configuration effort.
+
+This means you no longer need to copy-paste JaCoCo plugin configs or create special aggregator modules as [workarounds​](https://github.com/jacoco/jacoco/issues/869). Even the JaCoCo maintainers [envisioned that an external project could streamline Maven integration](https://github.com/jacoco/jacoco/issues/974#issuecomment-615225202) – Easy JaCoCo is that solution.
+
 
 > **Note:** This plugin is activated via `.mvn/extensions.xml`, so there is **no need** to declare the plugin in your parent POM unless you wish to customize project checks.
 

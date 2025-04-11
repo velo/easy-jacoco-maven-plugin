@@ -77,40 +77,44 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
   }
 
   private MavenProject newReportProject(
-      MavenProject project,
+      MavenProject topLevelProject,
       List<MavenProject> reactorProjects,
       ProjectBuildingRequest projectBuildingRequest)
       throws MavenExecutionException {
     var projectArtifactId =
-        project.getArtifactId().contains("-parent")
-            ? project.getArtifactId().replace("-parent", "-coverage")
-            : project.getArtifactId() + "-coverage";
+        topLevelProject.getArtifactId().contains("-parent")
+            ? topLevelProject.getArtifactId().replace("-parent", "-coverage")
+            : topLevelProject.getArtifactId() + "-coverage";
 
-    var outputDir = new File(project.getBuild().getDirectory());
+    var outputDir = new File(topLevelProject.getBuild().getDirectory());
     var coverageProjectDir = new File(outputDir, projectArtifactId);
     var generatedPom = new File(coverageProjectDir, "pom.xml");
 
     if (!coverageProjectDir.exists() && !coverageProjectDir.mkdirs()) {
       throw new MavenExecutionException("Failed to create output dir for bom", generatedPom);
     }
+
     try {
       log.info("Generating report project: " + projectArtifactId);
       Model pom = new Model();
-      pom.setModelVersion(project.getModelVersion());
+      pom.setModelVersion(topLevelProject.getModelVersion());
       Parent parent = new Parent();
-      parent.setGroupId(project.getGroupId());
-      parent.setArtifactId(project.getArtifactId());
-      parent.setVersion(project.getVersion());
+      parent.setGroupId(topLevelProject.getGroupId());
+      parent.setArtifactId(topLevelProject.getArtifactId());
+      parent.setVersion(topLevelProject.getVersion());
 
-      pom.setGroupId(project.getGroupId());
+      pom.setGroupId(topLevelProject.getGroupId());
       pom.setParent(parent);
-      pom.setVersion(project.getVersion());
+      pom.setVersion(topLevelProject.getVersion());
       pom.setPackaging("pom");
 
       pom.setArtifactId(projectArtifactId);
 
+      Properties extraProperties = readExtraProperties(topLevelProject);
+      pom.setProperties(extraProperties);
+
       Build build = new Build();
-      build.setOutputDirectory(project.getBuild().getOutputDirectory());
+      build.setOutputDirectory(topLevelProject.getBuild().getOutputDirectory());
       pom.setBuild(build);
 
       var pluginProps =
@@ -144,7 +148,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
 
       List<Dependency> dependencies =
           reactorProjects.stream()
-              .filter(reactorProject -> !reactorProject.equals(project))
+              .filter(reactorProject -> !reactorProject.equals(topLevelProject))
               .map(dep -> toDependency(dep))
               .collect(Collectors.toList());
       pom.setDependencies(dependencies);
@@ -156,6 +160,30 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
     } catch (Exception e) {
       throw new MavenExecutionException("Failed to generate bom.", e);
     }
+  }
+
+  private Properties readExtraProperties(MavenProject topLevelProject) {
+    var plugin = topLevelProject.getPlugin("com.marvinformatics.jacoco:easy-jacoco-maven-plugin");
+    if (plugin == null) {
+      return new Properties();
+    }
+
+    if (!(plugin.getConfiguration() instanceof Xpp3Dom)) {
+      return new Properties();
+    }
+
+    var config = (Xpp3Dom) plugin.getConfiguration();
+    var projectExtraProperties = config.getChild("projectExtraProperties");
+    if (projectExtraProperties == null || projectExtraProperties.getChildCount() == 0) {
+      return new Properties();
+    }
+
+    var properties = new Properties();
+    for (Xpp3Dom child : projectExtraProperties.getChildren()) {
+      properties.setProperty(child.getName(), child.getValue());
+    }
+
+    return properties;
   }
 
   private Dependency toDependency(MavenProject project) {
