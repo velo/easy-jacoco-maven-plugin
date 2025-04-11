@@ -24,7 +24,7 @@ This goal is typically executed during the `package` phase and produces instrume
 
 **Example Configuration:**
 
-"""
+```
 <plugin>
   <groupId>com.marvinformatics.jacoco</groupId>
   <artifactId>easy-jacoco-maven-plugin</artifactId>
@@ -35,6 +35,6 @@ This goal is typically executed during the `package` phase and produces instrume
     <skip>false</skip>
   </configuration>
 </plugin>
-"""
+```
 
 For a similar offline instrumentation process, see the [JaCoCo instrument-mojo documentation](https://www.eclemma.org/jacoco/trunk/doc/instrument-mojo.html).

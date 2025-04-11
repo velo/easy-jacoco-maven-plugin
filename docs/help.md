@@ -8,9 +8,9 @@ The `help` goal displays detailed help information about the Easy JaCoCo Maven P
 **Usage:**  
 Invoke the help goal directly to get an overview or detailed information for a specific goal. For example:
 
-"""
+```
 mvn easy-jacoco:help -Ddetail=true -Dgoal=check-project
-"""
+```
 
 This command displays detailed parameter information for the `check-project` goal.
 

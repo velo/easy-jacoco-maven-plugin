@@ -45,7 +45,7 @@ This goal is bound to the `verify` phase and is triggered automatically during t
 
 **Example Configuration:**
 
-"""
+```
 <plugin>
   <groupId>com.marvinformatics.jacoco</groupId>
   <artifactId>easy-jacoco-maven-plugin</artifactId>
@@ -66,6 +66,6 @@ This goal is bound to the `verify` phase and is triggered automatically during t
     <haltOnFailure>true</haltOnFailure>
   </configuration>
 </plugin>
-"""
+```
 
 For further details, see the [JaCoCo check-mojo documentation](https://www.eclemma.org/jacoco/trunk/doc/check-mojo.html).

@@ -61,7 +61,7 @@ This goal is automatically bound to the `verify` phase when Easy JaCoCo is activ
 
 **Example Configuration:**
 
-"""
+```
 <plugin>
   <groupId>com.marvinformatics.jacoco</groupId>
   <artifactId>easy-jacoco-maven-plugin</artifactId>
@@ -74,6 +74,6 @@ This goal is automatically bound to the `verify` phase when Easy JaCoCo is activ
     <title>${project.name}</title>
   </configuration>
 </plugin>
-"""
+```
 
 For more details, refer to the [JaCoCo report-aggregate documentation](https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html).
