@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* File: src/test/java/com/marvinformatics/easyjacoco/ExampleProjectMavenBuildTest.java */
+/* File: src/test/java/com/marvinformatics/easyjacoco/ExampleProjectMavenBuildIT.java */
 package com.marvinformatics.easyjacoco;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +23,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Properties;
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
@@ -36,7 +41,7 @@ import org.junit.jupiter.api.Test;
 public class ExampleProjectMavenBuildIT {
 
   @Test
-  void givenExampleProject_whenMavenCleanInstall_thenBuildSuccess() throws Exception {
+  void givenExampleProject_whenMavenCleanInstallWithJacoco_thenBuildSuccess() throws Exception {
     // Execute the Maven build.
     TestResult result = runExample("examples/basic", "3.9.9");
 
@@ -67,26 +72,61 @@ public class ExampleProjectMavenBuildIT {
   }
 
   private TestResult runExample(String example, String mavenVersion, String... args)
-      throws IOException, MavenInvocationException {
-    // Locate the example project directory.
-    File projectDir = new File(example);
-    assertThat(projectDir)
+      throws IOException, MavenInvocationException, MavenExecutionException {
+    // Locate the example project source directory.
+    File srcProjectDir = new File(example);
+    assertThat(srcProjectDir)
         .as("Example project directory should exist and be a directory")
         .exists()
         .isDirectory();
 
-    if (args == null | args.length == 0 || (args.length == 1 && args[0] == null)) {
-      args = new String[] {"clean", "install", "-Deasy-jacoco.version=0.0.1-SNAPSHOT"};
+    // Copy the example project to a temporary directory under "target/"
+    File targetDir = new File("target/testing", "example-temp-" + System.currentTimeMillis());
+    copyDirectory(srcProjectDir.toPath(), targetDir.toPath());
+
+    // Use the temporary directory as the project directory for the Maven build.
+    File projectDir = targetDir;
+
+    Properties jacocoPomProps =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt");
+    String jacocoVersion = jacocoPomProps.getProperty("version");
+
+    if (args == null || args.length == 0 || (args.length == 1 && args[0] == null)) {
+      args =
+          new String[] {
+            "clean",
+            "install",
+            "-Deasy-jacoco.version=0.0.1-SNAPSHOT",
+            "-Djacoco.version=" + jacocoVersion
+          };
     }
 
     // Set up the Maven invocation request.
     InvocationRequest request =
         new DefaultInvocationRequest()
             .setPomFile(new File(projectDir, "pom.xml"))
+            .setShellEnvironmentInherited(false)
             .addArgs(Lists.newArrayList(args))
             .setBatchMode(true)
             .setJavaHome(new File(System.getProperty("java.home")))
-            .setShowErrors(true);
+            .setShowErrors(true)
+            .setDebug(true);
+
+    // Inject the Jacoco agent into Maven's JVM.
+    // Determine the jacoco agent jar path. Adjust version if necessary.
+    String jacocoAgentPath =
+        System.getProperty("user.home")
+            + "/.m2/repository/org/jacoco/org.jacoco.agent/"
+            + jacocoVersion
+            + "/org.jacoco.agent-"
+            + jacocoVersion
+            + "-runtime.jar";
+    // Set the destination file for the coverage report under the temporary project directory.
+    File jacocoDest = new File(projectDir, "target/jacoco.exec");
+    // Compose the JAVA_OPTS argument that injects the agent.
+    String mavenOpts =
+        "-javaagent:" + jacocoAgentPath + "=destfile=" + jacocoDest.getAbsolutePath();
+    request.setMavenOpts(mavenOpts);
 
     // Prepare the Maven invoker.
     Invoker invoker = new DefaultInvoker();
@@ -99,18 +139,36 @@ public class ExampleProjectMavenBuildIT {
 
     // Execute the Maven build.
     InvocationResult invocationResult = invoker.execute(request);
-
     String buildOutput = outputStream.toString();
+
+    assertThat(jacocoDest)
+        .as("Maven execution terminated without generating jacoco report")
+        .exists();
 
     return new TestResult(
         buildOutput, invocationResult.getExecutionException(), invocationResult.getExitCode());
   }
 
+  /** Recursively copies a directory. */
+  private static void copyDirectory(Path source, Path target) throws IOException {
+    Files.createDirectories(target);
+    Files.walk(source)
+        .forEach(
+            sourcePath -> {
+              try {
+                Path targetPath = target.resolve(source.relativize(sourcePath));
+                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+              } catch (IOException e) {
+                throw new RuntimeException("Error copying directory", e);
+              }
+            });
+  }
+
   static class TestResult {
 
-    String buildOutput;
-    CommandLineException executionException;
-    int exitCode;
+    final String buildOutput;
+    final CommandLineException executionException;
+    final int exitCode;
 
     public TestResult(String buildOutput, CommandLineException executionException, int exitCode) {
       this.buildOutput = buildOutput;

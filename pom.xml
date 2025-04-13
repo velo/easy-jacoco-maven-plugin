@@ -121,6 +121,13 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <artifactId>org.jacoco.report</artifactId>
       <version>${jacoco.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <version>${jacoco.version}</version>
+      <classifier>runtime</classifier>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
@@ -322,6 +329,39 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.marvinformatics.jacoco</groupId>
+        <artifactId>easy-jacoco-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>**/com/marvinformatics/jacoco/easy_jacoco_maven_plugin/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>report-project</goal>
+              <goal>check-project</goal>
             </goals>
           </execution>
         </executions>
