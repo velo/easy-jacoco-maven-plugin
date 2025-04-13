@@ -1,4 +1,4 @@
-# Easy JaCoCo Maven Plugin [![Buid project](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml/badge.svg)](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml)
+# Easy JaCoCo Maven Plugin [![Buid project](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml/badge.svg)](https://github.com/velo/easy-jacoco-maven-plugin/actions/workflows/deploy.yml) [![Maven Central](https://img.shields.io/maven-central/v/com.marvinformatics.jacoco/easy-jacoco-maven-plugin.svg)](https://search.maven.org/search?q=g:com.marvinformatics.jacoco%20AND%20a:easy-jacoco-maven-plugin)
 
 **Easy JaCoCo Maven Plugin** simplifies JaCoCo code coverage setup in multi-module Maven projects by automatically gathering coverage data from all modules into a single, aggregated report. The plugin also offers project-wide coverage checks to enforce minimum coverage rules — all through a lean, minimal configuration effort.
 
@@ -84,6 +84,12 @@ Easy JaCoCo comes with several Maven goals to generate reports or perform projec
 - **Requirements:** The plugin requires Maven 3.9.9+ and Java 17+.
 
 For more detailed goal configuration and usage examples, please refer to the docs for each goal listed above.
+
+## Examples
+
+For a practical demonstration of how to integrate and use the Easy JaCoCo Maven Plugin, see our [Basic Example](examples/basic/README.md). This example shows you how to set up a multi-module Maven project with the plugin activated via `extensions.xml`, run unit tests with code coverage, and perform coverage checks with custom exclusion rules.
+
+**Note:** When running this example, include the property `-Deasy-jacoco.version=0.1.1` (or the latest version) for integration testing.
 
 ---
 
