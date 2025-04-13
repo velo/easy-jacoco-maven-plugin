@@ -18,60 +18,38 @@ package com.marvinformatics.easyjacoco;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collections;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.apache.maven.shared.invoker.PrintStreamHandler;
+import org.apache.maven.shared.utils.cli.CommandLineException;
 import org.junit.jupiter.api.Test;
 
 public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenExampleProject_whenMavenCleanInstall_thenBuildSuccess() throws Exception {
-    // Locate the example project directory.
-    File projectDir = new File("target/test-classes/unit/example");
-    assertThat(projectDir)
-        .as("Example project directory should exist and be a directory")
-        .exists()
-        .isDirectory();
-
-    // Set up the Maven invocation request.
-    InvocationRequest request = new DefaultInvocationRequest();
-    request.setPomFile(new File(projectDir, "pom.xml"));
-    request.setGoals(Collections.singletonList("clean install"));
-    request.setBatchMode(true);
-    request.setJavaHome(new File(System.getProperty("java.home")));
-    request.setShowErrors(true);
-
-    // Prepare the Maven invoker.
-    Invoker invoker = new DefaultInvoker();
-    File mavenHome = MavenDownloader.downloadAndExtractMaven("3.9.9");
-    invoker.setMavenHome(mavenHome);
-
-    // Capture Maven output.
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    invoker.setOutputHandler(new PrintStreamHandler(new PrintStream(outputStream), true));
-
     // Execute the Maven build.
-    InvocationResult result = invoker.execute(request);
+    TestResult result = runExample("examples/basic", "3.9.9");
 
-    String buildOutput = outputStream.toString();
-    System.out.println(buildOutput); // useful for debugging in the IDE
+    System.out.println(result.buildOutput); // useful for debugging in the IDE
 
     // Use AssertJ to assert that the build was successful.
-    assertThat(result.getExitCode())
+    assertThat(result.exitCode)
         .as(
             "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.getExitCode(), buildOutput)
+            result.exitCode, result.buildOutput)
         .isEqualTo(0);
 
-    assertThat(buildOutput)
+    assertThat(result.buildOutput)
         // verify coverage pom.xml was written to disk
         .containsSubsequence(
             "persist-report-project (persist-report-project) @ sample-coverage",
@@ -86,5 +64,58 @@ public class ExampleProjectMavenBuildIT {
             "check-project (check-project) @ sample-coverage",
             "Rule violated for bundle project",
             "Coverage checks have not been met");
+  }
+
+  private TestResult runExample(String example, String mavenVersion, String... args)
+      throws IOException, MavenInvocationException {
+    // Locate the example project directory.
+    File projectDir = new File(example);
+    assertThat(projectDir)
+        .as("Example project directory should exist and be a directory")
+        .exists()
+        .isDirectory();
+
+    if (args == null | args.length == 0 || (args.length == 1 && args[0] == null)) {
+      args = new String[] {"clean", "install", "-Deasy-jacoco.version=0.0.1-SNAPSHOT"};
+    }
+
+    // Set up the Maven invocation request.
+    InvocationRequest request =
+        new DefaultInvocationRequest()
+            .setPomFile(new File(projectDir, "pom.xml"))
+            .addArgs(Lists.newArrayList(args))
+            .setBatchMode(true)
+            .setJavaHome(new File(System.getProperty("java.home")))
+            .setShowErrors(true);
+
+    // Prepare the Maven invoker.
+    Invoker invoker = new DefaultInvoker();
+    File mavenHome = MavenDownloader.downloadAndExtractMaven(mavenVersion);
+    invoker.setMavenHome(mavenHome);
+
+    // Capture Maven output.
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    invoker.setOutputHandler(new PrintStreamHandler(new PrintStream(outputStream), true));
+
+    // Execute the Maven build.
+    InvocationResult invocationResult = invoker.execute(request);
+
+    String buildOutput = outputStream.toString();
+
+    return new TestResult(
+        buildOutput, invocationResult.getExecutionException(), invocationResult.getExitCode());
+  }
+
+  static class TestResult {
+
+    String buildOutput;
+    CommandLineException executionException;
+    int exitCode;
+
+    public TestResult(String buildOutput, CommandLineException executionException, int exitCode) {
+      this.buildOutput = buildOutput;
+      this.executionException = executionException;
+      this.exitCode = exitCode;
+    }
   }
 }

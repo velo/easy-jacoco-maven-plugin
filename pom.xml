@@ -323,11 +323,25 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
               <goal>integration-test</goal>
               <goal>verify</goal>
             </goals>
-            <!-- to test the plugin on a forked process, it needs to be installed first -->
-            <phase>install</phase>
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <goals>
+              <goal>install</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
@@ -371,7 +385,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
                 </goals>
                 <phase>initialize</phase>
                 <configuration>
-                  <pomFile>src/test/resources/unit/example/pom.xml</pomFile>
+                  <pomFile>examples/basic/pom.xml</pomFile>
                 </configuration>
               </execution>
               <execution>
@@ -381,7 +395,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
                 </goals>
                 <phase>initialize</phase>
                 <configuration>
-                  <pomFile>src/test/resources/unit/example/module-1/pom.xml</pomFile>
+                  <pomFile>examples/basic/module-1/pom.xml</pomFile>
                 </configuration>
               </execution>
             </executions>
