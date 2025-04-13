@@ -349,25 +349,6 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       </plugin>
 
       <plugin>
-        <groupId>com.marvinformatics.jacoco</groupId>
-        <artifactId>easy-jacoco-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <configuration>
-          <excludes>
-            <exclude>**/com/marvinformatics/jacoco/easy_jacoco_maven_plugin/**</exclude>
-          </excludes>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>report-project</goal>
-              <goal>check-project</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-install-plugin</artifactId>
         <version>3.1.0</version>
@@ -381,7 +362,6 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 

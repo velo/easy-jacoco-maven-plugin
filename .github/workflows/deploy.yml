@@ -69,4 +69,6 @@ jobs:
             mvn -B clean deploy -Pci,release
           else
             mvn -B clean install -Pci -Dgpg.skip=true
+            mvn com.marvinformatics.jacoco:easy-jacoco-maven-plugin:0.0.1-SNAPSHOT:check-project \
+                -Dexcludes=**/com/marvinformatics/jacoco/easy_jacoco_maven_plugin/**
           fi
