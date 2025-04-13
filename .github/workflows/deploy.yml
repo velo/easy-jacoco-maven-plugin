@@ -70,3 +70,9 @@ jobs:
           else
             mvn -B clean install -Pci -Dgpg.skip=true
           fi
+      
+      - name: Run Coverage Check
+        if: ${{ github.event_name != 'release' && github.ref_name != 'master' }}
+        run: |
+          mvn com.marvinformatics.jacoco:easy-jacoco-maven-plugin:0.0.1-SNAPSHOT:check-project \
+               -Dexcludes=**/com/marvinformatics/jacoco/easy_jacoco_maven_plugin/**

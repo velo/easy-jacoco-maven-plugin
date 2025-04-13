@@ -110,7 +110,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <scope>provided</scope>
     </dependency>
 
-    <!-- JaCoCo plugin (for version reference only, not used at runtime) -->
+    <!-- JaCoCo dependencies -->
     <dependency>
       <groupId>org.jacoco</groupId>
       <artifactId>org.jacoco.core</artifactId>
@@ -121,9 +121,56 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <artifactId>org.jacoco.report</artifactId>
       <version>${jacoco.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <version>${jacoco.version}</version>
+      <classifier>runtime</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-invoker</artifactId>
+      <version>3.3.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.8.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.22.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.21</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <testResources>
+      <testResource>
+        <filtering>true</filtering>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -241,6 +288,80 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.3</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+
+          <systemPropertyVariables>
+            <org.slf4j.simpleLogger.defaultLogLevel>debug</org.slf4j.simpleLogger.defaultLogLevel>
+          </systemPropertyVariables>
+
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+
+          <trimStackTrace>false</trimStackTrace>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.5.3</version>
+
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+
+          <systemPropertyVariables>
+            <org.slf4j.simpleLogger.defaultLogLevel>debug</org.slf4j.simpleLogger.defaultLogLevel>
+          </systemPropertyVariables>
+
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+
+          <trimStackTrace>false</trimStackTrace>
+        </configuration>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>default-install</id>
+            <goals>
+              <goal>install</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -276,6 +397,26 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
                   <goal>sort</goal>
                 </goals>
                 <phase>initialize</phase>
+              </execution>
+              <execution>
+                <id>format-example</id>
+                <goals>
+                  <goal>sort</goal>
+                </goals>
+                <phase>initialize</phase>
+                <configuration>
+                  <pomFile>examples/basic/pom.xml</pomFile>
+                </configuration>
+              </execution>
+              <execution>
+                <id>format-example-module</id>
+                <goals>
+                  <goal>sort</goal>
+                </goals>
+                <phase>initialize</phase>
+                <configuration>
+                  <pomFile>examples/basic/module-1/pom.xml</pomFile>
+                </configuration>
               </execution>
             </executions>
           </plugin>

@@ -134,6 +134,8 @@ public class ProjectReportMojo extends AbstractMojo {
       final IReportVisitor visitor = support.initRootVisitor();
       createReport(visitor, support);
       visitor.visitEnd();
+
+      getLog().info(String.format("Project report available at: %s", outputDirectory));
     } catch (final IOException e) {
       throw new MojoExecutionException("Error while creating report: " + e.getMessage(), e);
     }
