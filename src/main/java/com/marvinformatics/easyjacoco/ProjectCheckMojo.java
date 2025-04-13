@@ -27,7 +27,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.jacoco.core.analysis.ICounter.CounterValue;
 import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.check.IViolationsOutput;
 import org.jacoco.report.check.Limit;
@@ -62,7 +64,7 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
    * <p>This example requires an overall instruction coverage of 80% and no class must be missed:
    *
    * <pre>{@code
-   * <rules>
+   * <projectRules>
    *   <rule>
    *     <element>BUNDLE</element>
    *     <limits>
@@ -78,13 +80,15 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
    *       </limit>
    *     </limits>
    *   </rule>
-   * </rules>
+   * </projectRules>
    * }</pre>
+   *
+   * If undefined, the value above is used as default
    *
    * <p>This example requires a line coverage minimum of 50% for every class except test classes:
    *
    * <pre>{@code
-   * <rules>
+   * <projectRules>
    *   <rule>
    *     <element>CLASS</element>
    *     <excludes>
@@ -98,11 +102,10 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
    *       </limit>
    *     </limits>
    *   </rule>
-   * </rules>
+   * </projectRules>
    * }</pre>
    */
-  @Parameter(required = true)
-  private List<RuleConfiguration> projectRules;
+  @Parameter private List<RuleConfiguration> projectRules;
 
   /** Halt the build if any of the checks fail. */
   @Parameter(property = "jacoco.haltOnFailure", defaultValue = "false", required = true)
@@ -143,6 +146,26 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
     }
 
     getLog().info("Running project wide check...");
+
+    if (projectRules == null || projectRules.isEmpty()) {
+      // set default value to rules as per javadoc
+      projectRules = new ArrayList<RuleConfiguration>();
+      RuleConfiguration rule = new RuleConfiguration();
+      rule.setElement("BUNDLE");
+      List<Limit> limits = new ArrayList<Limit>();
+      rule.setLimits(limits);
+      Limit instructions = new Limit();
+      instructions.setCounter(CounterEntity.INSTRUCTION.name());
+      instructions.setValue(CounterValue.COVEREDRATIO.name());
+      instructions.setMinimum("0.80");
+      limits.add(instructions);
+      Limit classes = new Limit();
+      classes.setCounter(CounterEntity.CLASS.name());
+      classes.setValue(CounterValue.MISSEDCOUNT.name());
+      classes.setMaximum("0");
+      limits.add(classes);
+      projectRules.add(rule);
+    }
 
     var projectRoot = session.getTopLevelProject().getBasedir();
 
