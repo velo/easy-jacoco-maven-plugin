@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Properties;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
@@ -90,16 +89,20 @@ public class ExampleProjectMavenBuildIT {
     // Use the temporary directory as the project directory for the Maven build.
     File projectDir = targetDir;
 
-    Properties jacocoPomProps =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt");
-    String jacocoVersion = jacocoPomProps.getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
 
     if (args == null || args.length == 0 || (args.length == 1 && args[0] == null)) {
+      String easyJacocoVersion =
+          EasyJacocoLifecycleParticipant.readArtifactProperties(
+                  "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+              .getProperty("version");
       args =
           new String[] {
             "clean",
             "install",
-            "-Deasy-jacoco.version=0.0.1-SNAPSHOT",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
             "-Djacoco.version=" + jacocoVersion
           };
     }
