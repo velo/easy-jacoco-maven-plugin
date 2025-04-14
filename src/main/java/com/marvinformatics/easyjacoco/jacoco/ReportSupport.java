@@ -28,7 +28,6 @@ import java.util.List;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.jacoco.core.analysis.Analyzer;
-import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.tools.ExecFileLoader;
@@ -152,7 +151,7 @@ public class ReportSupport {
       final List<String> excludes,
       final ISourceFileLocator locator)
       throws IOException {
-    final CoverageBuilder builder = new CoverageBuilder();
+    final CoverageBuilder builder = new CoverageBuilder(log);
 
     for (MavenProject project : projects) {
       final File classesDir = new File(project.getBuild().getOutputDirectory());
@@ -180,7 +179,7 @@ public class ReportSupport {
       final List<String> excludes,
       final ISourceFileLocator locator)
       throws IOException {
-    final CoverageBuilder builder = new CoverageBuilder();
+    final CoverageBuilder builder = new CoverageBuilder(log);
     final File classesDir = new File(project.getBuild().getOutputDirectory());
 
     if (classesDir.isDirectory()) {

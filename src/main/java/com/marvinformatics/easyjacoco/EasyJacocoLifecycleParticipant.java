@@ -60,7 +60,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
 
     log.info("Registering jacoco related plugins on all modules");
     for (var project : session.getProjects()) {
-      project.getBuild().addPlugin(registerVanillaJacocoExecution());
+      project.getBuild().addPlugin(registerVanillaJacocoExecution(project));
     }
 
     MavenProject topLevelProject = session.getTopLevelProject();
@@ -195,13 +195,17 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
     return dependency;
   }
 
-  private Plugin registerVanillaJacocoExecution() throws MavenExecutionException {
+  private Plugin registerVanillaJacocoExecution(MavenProject project)
+      throws MavenExecutionException {
     var jacocoPomProps = readArtifactProperties("org.jacoco", "org.jacoco.core");
 
-    var plugin = new Plugin();
-    plugin.setGroupId("org.jacoco");
-    plugin.setArtifactId("jacoco-maven-plugin");
-    plugin.setVersion(jacocoPomProps.getProperty("version"));
+    var plugin = project.getPlugin("org.jacoco:jacoco-maven-plugin");
+    if (plugin == null) {
+      plugin = new Plugin();
+      plugin.setGroupId("org.jacoco");
+      plugin.setArtifactId("jacoco-maven-plugin");
+      plugin.setVersion(jacocoPomProps.getProperty("version"));
+    }
 
     var execution = new PluginExecution();
     execution.setId("vanilla-jacoco-goals");

@@ -58,20 +58,22 @@ public class FileFilter {
     var includePatterns = List.of(includes.split(","));
     var excludePatterns = excludes == null ? List.<String>of() : List.of(excludes.split(","));
 
-    try (var stream = Files.walk(directory.toPath())) {
+    Path basePath = directory.toPath();
+    try (var stream = Files.walk(basePath)) {
       return stream
           .filter(Files::isRegularFile)
+          .filter(path -> matches(basePath, path, includePatterns, true))
+          .filter(path -> !matches(basePath, path, excludePatterns, false))
           .map(Path::toFile)
-          .filter(file -> matches(file, includePatterns, true))
-          .filter(file -> !matches(file, excludePatterns, false))
           .collect(Collectors.toList());
     }
   }
 
-  private static boolean matches(File file, List<String> patterns, boolean defaultIfEmpty) {
+  private static boolean matches(
+      Path basePath, Path path, List<String> patterns, boolean defaultIfEmpty) {
     if (patterns.isEmpty()) return defaultIfEmpty;
-    String path = file.getPath().replace(File.separatorChar, '/');
-    return patterns.stream().anyMatch(p -> path.matches(globToRegex(p.trim())));
+    String relativePath = basePath.relativize(path).toString().replace(File.separatorChar, '/');
+    return patterns.stream().anyMatch(p -> relativePath.matches(globToRegex(p.trim())));
   }
 
   private static String globToRegex(String glob) {
