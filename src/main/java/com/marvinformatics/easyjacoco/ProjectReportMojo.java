@@ -109,6 +109,12 @@ public class ProjectReportMojo extends AbstractMojo {
    */
   @Parameter List<String> dataFileExcludes;
 
+  /**
+   * A list of modules/projects to exclude from the report. Must match the module artifactId. When
+   * not specified nothing will be excluded.
+   */
+  @Parameter List<String> excludeModules;
+
   @Override
   public void execute() throws MojoExecutionException {
     if (skip) {
@@ -150,7 +156,13 @@ public class ProjectReportMojo extends AbstractMojo {
         continue;
       }
       support.processProject(
-          group, project.getArtifactId(), project, includes, excludes, sourceEncoding);
+          group,
+          project.getArtifactId(),
+          project,
+          includes,
+          excludes,
+          sourceEncoding,
+          excludeModules);
     }
   }
 

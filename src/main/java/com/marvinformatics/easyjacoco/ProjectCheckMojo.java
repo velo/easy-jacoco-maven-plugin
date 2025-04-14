@@ -112,29 +112,35 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
   private boolean haltOnFailure;
 
   /**
-   * A list of class files to include in the report. May use wildcard characters (* and ?). When not
-   * specified everything will be included.
+   * A list of class files to include in coverage check. May use wildcard characters (* and ?). When
+   * not specified everything will be included.
    */
   @Parameter List<String> includes;
 
   /**
-   * A list of class files to exclude from the report. May use wildcard characters (* and ?). When
-   * not specified nothing will be excluded.
+   * A list of class files to exclude from coverage check. May use wildcard characters (* and ?).
+   * When not specified nothing will be excluded.
    */
   @Parameter List<String> excludes;
 
   /**
-   * A list of execution data files to include in the report from each project. May use wildcard
+   * A list of execution data files to include in coverage check from each project. May use wildcard
    * characters (* and ?). When not specified all *.exec files from the target folder will be
    * included.
    */
   @Parameter List<String> dataFileIncludes;
 
   /**
-   * A list of execution data files to exclude from the report. May use wildcard characters (* and
-   * ?). When not specified nothing will be excluded.
+   * A list of execution data files to exclude from coverage check. May use wildcard characters (*
+   * and ?). When not specified nothing will be excluded.
    */
   @Parameter List<String> dataFileExcludes;
+
+  /**
+   * A list of modules/projects to exclude from coverage check. Must match the module artifactId.
+   * When not specified nothing will be excluded.
+   */
+  @Parameter List<String> excludeModules;
 
   private boolean violations;
 
@@ -180,7 +186,8 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
     try {
       final IReportVisitor visitor = support.initRootVisitor();
       loadExecutionData(support, projectRoot);
-      support.processProjects(visitor, session.getAllProjects(), includes, excludes);
+      support.processProjects(
+          visitor, session.getAllProjects(), includes, excludes, excludeModules);
       visitor.visitEnd();
     } catch (final IOException e) {
       throw new MojoExecutionException("Error while checking code coverage: " + e.getMessage(), e);

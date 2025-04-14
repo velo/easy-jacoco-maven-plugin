@@ -16,6 +16,7 @@
 package com.marvinformatics.easyjacoco.jacoco;
 
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -110,9 +112,11 @@ public class ReportSupport {
       final IReportGroupVisitor visitor,
       final List<MavenProject> projects,
       final List<String> includes,
-      final List<String> excludes)
+      final List<String> excludes,
+      List<String> excludedModules)
       throws IOException {
-    processProjects(visitor, projects, includes, excludes, new NoSourceLocator());
+    processProjects(
+        visitor, projects, includes, excludes, new NoSourceLocator(), "project", excludedModules);
   }
 
   /**
@@ -133,7 +137,8 @@ public class ReportSupport {
       final MavenProject project,
       final List<String> includes,
       final List<String> excludes,
-      final String srcEncoding)
+      final String srcEncoding,
+      List<String> excludedModules)
       throws IOException {
     processProject(
         visitor,
@@ -141,7 +146,8 @@ public class ReportSupport {
         project,
         includes,
         excludes,
-        new SourceFileCollection(project, srcEncoding));
+        new SourceFileCollection(project, srcEncoding),
+        excludedModules);
   }
 
   private void processProjects(
@@ -149,12 +155,21 @@ public class ReportSupport {
       final List<MavenProject> projects,
       final List<String> includes,
       final List<String> excludes,
-      final ISourceFileLocator locator)
+      final ISourceFileLocator locator,
+      String bundleName,
+      List<String> excludedModules)
       throws IOException {
     final CoverageBuilder builder = new CoverageBuilder(log);
+    excludedModules = excludedModules == null ? Collections.emptyList() : excludedModules;
 
     for (MavenProject project : projects) {
       final File classesDir = new File(project.getBuild().getOutputDirectory());
+      if (excludedModules.contains(project.getArtifactId())) {
+        log.debug(
+            String.format(
+                "Module '%s' skipped due to excludedModules %s", project, excludedModules));
+        continue;
+      }
 
       if (classesDir.isDirectory()) {
         final Analyzer analyzer = new Analyzer(loader.getExecutionDataStore(), builder);
@@ -165,7 +180,7 @@ public class ReportSupport {
       }
     }
 
-    final IBundleCoverage bundle = builder.getBundle("project");
+    final IBundleCoverage bundle = builder.getBundle(bundleName);
     logBundleInfo(bundle, builder.getNoMatchClasses());
 
     visitor.visitBundle(bundle, locator);
@@ -177,23 +192,17 @@ public class ReportSupport {
       final MavenProject project,
       final List<String> includes,
       final List<String> excludes,
-      final ISourceFileLocator locator)
+      final ISourceFileLocator locator,
+      List<String> excludedModules)
       throws IOException {
-    final CoverageBuilder builder = new CoverageBuilder(log);
-    final File classesDir = new File(project.getBuild().getOutputDirectory());
-
-    if (classesDir.isDirectory()) {
-      final Analyzer analyzer = new Analyzer(loader.getExecutionDataStore(), builder);
-      final FileFilter filter = new FileFilter(includes, excludes);
-      for (final File file : filter.getFiles(classesDir)) {
-        analyzer.analyzeAll(file);
-      }
-    }
-
-    final IBundleCoverage bundle = builder.getBundle(bundleName);
-    logBundleInfo(bundle, builder.getNoMatchClasses());
-
-    visitor.visitBundle(bundle, locator);
+    processProjects(
+        visitor,
+        singletonList(project),
+        includes,
+        excludes,
+        locator,
+        project.getName(),
+        excludedModules);
   }
 
   private void logBundleInfo(
