@@ -83,7 +83,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>3.5.1</version>
+        <version>4.0.2</version>
         <!-- maven runs with a different version, causing all short of class not found issues-->
         <scope>runtime</scope>
       </dependency>
