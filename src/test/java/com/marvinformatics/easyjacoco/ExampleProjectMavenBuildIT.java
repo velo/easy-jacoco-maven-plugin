@@ -1,5 +1,5 @@
 /*
- * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ * Copyright © 2025 Marvin Froeder (contact@marvinformatics.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* File: src/test/java/com/marvinformatics/easyjacoco/ExampleProjectMavenBuildIT.java */
 package com.marvinformatics.easyjacoco;
 
 import static org.assertj.core.api.Assertions.assertThat;

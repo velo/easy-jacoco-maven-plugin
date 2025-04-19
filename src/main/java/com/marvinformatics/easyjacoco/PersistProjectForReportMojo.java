@@ -1,5 +1,5 @@
 /*
- * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ * Copyright © 2025 Marvin Froeder (contact@marvinformatics.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.lifecycle.internal.LifecycleModuleBuilder;
-import org.apache.maven.lifecycle.internal.LifecycleTaskSegmentCalculator;
 import org.apache.maven.model.io.ModelWriter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,7 +29,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.ProjectBuilder;
 
 /** Generates an aggregated project report (placeholder). */
 @Mojo(name = "persist-report-project", aggregator = true, defaultPhase = LifecyclePhase.VALIDATE)
@@ -62,10 +59,7 @@ public class PersistProjectForReportMojo extends AbstractMojo {
   /** Only used by {@link EasyJacocoLifecycleParticipant} */
   @Parameter Properties projectExtraProperties;
 
-  @Component private LifecycleTaskSegmentCalculator segmentCalculator;
-  @Component private LifecycleModuleBuilder builder;
   @Component private ModelWriter modelWriter;
-  @Component private ProjectBuilder projectBuilder;
 
   @Parameter(defaultValue = "${maven.version}", readonly = true)
   private String mavenVersion;

@@ -1,5 +1,5 @@
 /*
- * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ * Copyright © 2025 Marvin Froeder (contact@marvinformatics.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
 
     log.info("Registering jacoco related plugins on all modules");
     for (var project : session.getProjects()) {
-      project.getBuild().addPlugin(registerVanillaJacocoExecution(project));
+      registerVanillaJacocoExecution(project);
     }
 
     MavenProject topLevelProject = session.getTopLevelProject();
@@ -205,6 +205,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       plugin.setGroupId("org.jacoco");
       plugin.setArtifactId("jacoco-maven-plugin");
       plugin.setVersion(jacocoPomProps.getProperty("version"));
+      project.getBuild().addPlugin(plugin);
     }
 
     var execution = new PluginExecution();

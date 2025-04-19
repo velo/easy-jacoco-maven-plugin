@@ -1,5 +1,5 @@
 /*
- * Copyright © ${year} DataSQRL (contact@datasqrl.com)
+ * Copyright © 2025 Marvin Froeder (contact@marvinformatics.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,17 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
     }
 
     final FileFilter filter = new FileFilter(dataFileIncludes, dataFileExcludes);
-    for (final File execFile : filter.getFiles(projectRoot)) {
+    List<File> files = filter.getFiles(projectRoot);
+
+    if (files.isEmpty()) {
+      getLog()
+          .error(
+              String.format(
+                  "No execution data found at: %s includes: %s excludes: %s",
+                  projectRoot, dataFileIncludes, dataFileExcludes));
+    }
+
+    for (final File execFile : files) {
       support.loadExecutionData(execFile);
     }
   }
