@@ -43,8 +43,12 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenExampleProject_whenMavenCleanInstallWithJacoco_thenBuildSuccess() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
     // Execute the Maven build.
-    TestResult result = runExample("examples/basic", "3.9.9");
+    TestResult result = runExample("examples/basic", mavenVersion);
 
     System.out.println(result.buildOutput); // useful for debugging in the IDE
 

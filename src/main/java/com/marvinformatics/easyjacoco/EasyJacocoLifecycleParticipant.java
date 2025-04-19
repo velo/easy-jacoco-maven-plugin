@@ -91,7 +91,8 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
     var generatedPom = new File(coverageProjectDir, "pom.xml");
 
     if (!coverageProjectDir.exists() && !coverageProjectDir.mkdirs()) {
-      throw new MavenExecutionException("Failed to create output dir for bom", generatedPom);
+      throw new MavenExecutionException(
+          "Failed to create output dir for coverage pom", generatedPom);
     }
 
     try {
@@ -158,7 +159,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       return projectBuilder.build(generatedPom, projectBuildingRequest).getProject();
 
     } catch (Exception e) {
-      throw new MavenExecutionException("Failed to generate bom.", e);
+      throw new MavenExecutionException("Failed to generate coverage pom.", e);
     }
   }
 

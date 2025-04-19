@@ -57,8 +57,8 @@ public class MavenDownloader {
     // If the distribution is not found, download it from the Apache archive as a tar.gz
     String mavenDownloadUrl =
         String.format(
-            "https://archive.apache.org/dist/maven/maven-3/%s/binaries/apache-maven-%s-bin.tar.gz",
-            mavenVersion, mavenVersion);
+            "https://archive.apache.org/dist/maven/maven-%s/%s/binaries/apache-maven-%s-bin.tar.gz",
+            mavenVersion.split("\\.")[0], mavenVersion, mavenVersion);
 
     // Download the tar.gz file into the Maven wrapper directory.
     File tarGzFile = new File(wrapperDists, "apache-maven-" + mavenVersion + "-bin.tar.gz");
