@@ -38,30 +38,34 @@ import org.jacoco.report.check.Rule;
 @Mojo(name = "check-project", defaultPhase = LifecyclePhase.VERIFY)
 public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput {
 
+  /**
+   * Skip the execution of the check-project goal.
+   *
+   * <p>Default: false.
+   */
   @Parameter(property = "easyjacoco.skip", defaultValue = "false")
   private boolean skip;
 
+  /** Maven session object provided by the Maven runtime. */
   @Parameter(defaultValue = "${session}", readonly = true)
   private MavenSession session;
 
   /**
    * Check configuration used to specify rules on element types (BUNDLE, PACKAGE, CLASS, SOURCEFILE
-   * or METHOD) with a list of limits. Each limit applies to a certain counter (INSTRUCTION, LINE,
-   * BRANCH, COMPLEXITY, METHOD, CLASS) and defines a minimum or maximum for the corresponding value
-   * (TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO). If a limit refers to a
-   * ratio it must be in the range from 0.0 to 1.0 where the number of decimal places will also
-   * determine the precision in error messages. A limit ratio may optionally be declared as a
-   * percentage where 0.80 and 80% represent the same value.
+   * or METHOD) along with limits. Each limit applies to a specific counter (INSTRUCTION, LINE,
+   * BRANCH, COMPLEXITY, METHOD, CLASS) and defines a minimum or maximum for the corresponding
+   * metric (TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO).
    *
-   * <p>If not specified the following defaults are assumed:
+   * <p>If not specified, JaCoCo defaults are used:
    *
    * <ul>
-   *   <li>rule element: BUNDLE
-   *   <li>limit counter: INSTRUCTION
-   *   <li>limit value: COVEREDRATIO
+   *   <li>Element: BUNDLE
+   *   <li>Counter: INSTRUCTION with minimum COVEREDRATIO of 0.80 and CLASS with maximum MISSEDCOUNT
+   *       of 0
    * </ul>
    *
-   * <p>This example requires an overall instruction coverage of 80% and no class must be missed:
+   * <p>For example, to enforce a minimum of 70% line coverage for the entire project (bundle),
+   * configure:
    *
    * <pre>{@code
    * <projectRules>
@@ -69,45 +73,24 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
    *     <element>BUNDLE</element>
    *     <limits>
    *       <limit>
-   *         <counter>INSTRUCTION</counter>
-   *         <value>COVEREDRATIO</value>
-   *         <minimum>0.80</minimum>
-   *       </limit>
-   *       <limit>
-   *         <counter>CLASS</counter>
-   *         <value>MISSEDCOUNT</value>
-   *         <maximum>0</maximum>
-   *       </limit>
-   *     </limits>
-   *   </rule>
-   * </projectRules>
-   * }</pre>
-   *
-   * If undefined, the value above is used as default
-   *
-   * <p>This example requires a line coverage minimum of 50% for every class except test classes:
-   *
-   * <pre>{@code
-   * <projectRules>
-   *   <rule>
-   *     <element>CLASS</element>
-   *     <excludes>
-   *       <exclude>*Test</exclude>
-   *     </excludes>
-   *     <limits>
-   *       <limit>
    *         <counter>LINE</counter>
    *         <value>COVEREDRATIO</value>
-   *         <minimum>50%</minimum>
+   *         <minimum>0.70</minimum>
    *       </limit>
    *     </limits>
    *   </rule>
    * </projectRules>
    * }</pre>
+   *
+   * @since 0.1
    */
   @Parameter private List<RuleConfiguration> projectRules;
 
-  /** Halt the build if any of the checks fail. */
+  /**
+   * Whether to halt the build if the coverage check fails.
+   *
+   * <p>Default: false (warn only).
+   */
   @Parameter(property = "jacoco.haltOnFailure", defaultValue = "false", required = true)
   private boolean haltOnFailure;
 
@@ -115,32 +98,35 @@ public class ProjectCheckMojo extends AbstractMojo implements IViolationsOutput 
    * A list of class files to include in coverage check. May use wildcard characters (* and ?). When
    * not specified everything will be included.
    */
-  @Parameter List<String> includes;
+  @Parameter private List<String> includes;
 
   /**
-   * A list of class files to exclude from coverage check. May use wildcard characters (* and ?).
-   * When not specified nothing will be excluded.
+   * List of class files to exclude from the coverage check. Supports wildcards.
+   *
+   * <p>Default: None.
    */
-  @Parameter List<String> excludes;
+  @Parameter private List<String> excludes;
 
   /**
-   * A list of execution data files to include in coverage check from each project. May use wildcard
-   * characters (* and ?). When not specified all *.exec files from the target folder will be
-   * included.
+   * List of execution data files to include for coverage analysis. Supports wildcards.
+   *
+   * <p>Default: All *.exec files in target directories.
    */
-  @Parameter List<String> dataFileIncludes;
+  @Parameter private List<String> dataFileIncludes;
 
   /**
-   * A list of execution data files to exclude from coverage check. May use wildcard characters (*
-   * and ?). When not specified nothing will be excluded.
+   * List of execution data files to exclude from coverage analysis. Supports wildcards.
+   *
+   * <p>Default: None.
    */
-  @Parameter List<String> dataFileExcludes;
+  @Parameter private List<String> dataFileExcludes;
 
   /**
-   * A list of modules/projects to exclude from coverage check. Must match the module artifactId.
-   * When not specified nothing will be excluded.
+   * List of module artifactIds to exclude from the coverage check.
+   *
+   * <p>Default: None.
    */
-  @Parameter List<String> excludeModules;
+  @Parameter private List<String> excludeModules;
 
   private boolean violations;
 

@@ -30,7 +30,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-/** Generates an aggregated project report (placeholder). */
+/** Internal class, only used to save coverage project pom.xml to disk */
 @Mojo(name = "persist-report-project", aggregator = true, defaultPhase = LifecyclePhase.VALIDATE)
 public class PersistProjectForReportMojo extends AbstractMojo {
 

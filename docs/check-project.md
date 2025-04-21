@@ -12,35 +12,36 @@ This goal is bound to the `verify` phase and is triggered automatically during t
 
 **Parameters:**
 
-- **dataFileExcludes** (List, Optional)  
-  A list of execution data files to exclude from the report. Supports wildcard characters (`*`, `?`).  
+- **dataFileIncludes** (List, Optional)
+  A list of execution data files to include from each module. Supports wildcards.
+  *Default:* All `*.exec` files in target directories.
+
+- **dataFileExcludes** (List, Optional)
+  A list of execution data files to exclude from the report. Supports wildcard characters (`*`, `?`).
   *Default:* None.
 
-- **dataFileIncludes** (List, Optional)  
-  A list of execution data files to include from each module. Supports wildcards.  
-  *Default:* All `*.exec` files in target directories.
+- **includes** (List, Optional)
+  A list of class files to include in the coverage check. Supports wildcards.
+  *Default:* All classes.
 
 - **excludes** (List, Optional)  
   A list of class files to exclude from the coverage check. Supports wildcards.  
   *Default:* None.
 
-- **haltOnFailure** (Boolean, Required)  
-  Whether to halt the build if the coverage check fails.  
+- **excludeModules** (List, Optional)
+  A list of module artifactIds to exclude from the coverage check.
+  *Default:* None.
+
+- **haltOnFailure** (Boolean, Required)
+  Whether to halt the build if the coverage check fails.
   *Default:* `false` (warn only).
 
-- **includes** (List, Optional)  
-  A list of class files to include in the coverage check. Supports wildcards.  
-  *Default:* All classes.
-
-- **projectRules** (List, Required)  
-  Check configuration used to specify rules on element types (BUNDLE, PACKAGE, CLASS, SOURCEFILE, or METHOD) along with limits.  
+- **projectRules** (List, Required)
+  Check configuration used to specify rules on element types (BUNDLE, PACKAGE, CLASS, SOURCEFILE, or METHOD) along with limits.
   *Default:* Uses JaCoCo defaults if not specified.
 
-- **session** (org.apache.maven.execution.MavenSession, Optional)  
-  Maven session object provided by the Maven runtime.
-
-- **skip** (Boolean, Optional)  
-  Skip the execution of this goal.  
+- **skip** (Boolean, Optional)
+  Skip the execution of this goal.
   *Default:* `false`.
 
 **Example Configuration:**

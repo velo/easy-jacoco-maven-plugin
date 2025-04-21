@@ -32,7 +32,16 @@ import org.apache.maven.project.MavenProject;
 import org.jacoco.report.IReportGroupVisitor;
 import org.jacoco.report.IReportVisitor;
 
-/** Generates an aggregated project report (placeholder). */
+/**
+ * Generates an aggregated coverage report for the entire project by merging execution data from all
+ * modules.
+ *
+ * <p>This goal is automatically bound to the verify phase and produces a report in multiple formats
+ * (HTML, XML, CSV) placed in the directory defined by <code>
+ * ${project.reporting.outputDirectory}/jacoco-aggregate</code>. It works similarly to the JaCoCo
+ * report-aggregate mojo, but without requiring a separate aggregator project or manual dependency
+ * management.
+ */
 @Mojo(name = "report-project", defaultPhase = LifecyclePhase.VERIFY)
 public class ProjectReportMojo extends AbstractMojo {
 
@@ -49,12 +58,12 @@ public class ProjectReportMojo extends AbstractMojo {
    * part of a site generation, the output directory configured in the Maven Site Plugin is used
    * instead.
    */
-  @Parameter(defaultValue = "${project.reporting.outputDirectory}/jacoco-aggregate")
-  File outputDirectory;
+  @Parameter(defaultValue = "${project.build.directory}/jacoco-project-report")
+  private File outputDirectory;
 
   /** Encoding of the generated reports. */
   @Parameter(property = "project.reporting.outputEncoding", defaultValue = "UTF-8")
-  String outputEncoding;
+  private String outputEncoding;
 
   /**
    * A list of report formats to generate. Supported formats are HTML, XML and CSV. Defaults to all
@@ -63,7 +72,7 @@ public class ProjectReportMojo extends AbstractMojo {
    * @since 0.8.7
    */
   @Parameter(defaultValue = "HTML,XML,CSV")
-  List<ReportFormat> formats;
+  private List<ReportFormat> formats;
 
   /**
    * Name of the root node HTML report pages.
@@ -71,7 +80,7 @@ public class ProjectReportMojo extends AbstractMojo {
    * @since 0.7.7
    */
   @Parameter(defaultValue = "${project.name}")
-  String title;
+  private String title;
 
   /**
    * Footer text used in HTML report pages.
@@ -82,38 +91,38 @@ public class ProjectReportMojo extends AbstractMojo {
 
   /** Encoding of the source files. */
   @Parameter(property = "project.build.sourceEncoding", defaultValue = "UTF-8")
-  String sourceEncoding;
+  private String sourceEncoding;
 
   /**
    * A list of class files to include in the report. May use wildcard characters (* and ?). When not
    * specified everything will be included.
    */
-  @Parameter List<String> includes;
+  @Parameter private List<String> includes;
 
   /**
    * A list of class files to exclude from the report. May use wildcard characters (* and ?). When
    * not specified nothing will be excluded.
    */
-  @Parameter List<String> excludes;
+  @Parameter private List<String> excludes;
 
   /**
    * A list of execution data files to include in the report from each project. May use wildcard
    * characters (* and ?). When not specified all *.exec files from the target folder will be
    * included.
    */
-  @Parameter List<String> dataFileIncludes;
+  @Parameter private List<String> dataFileIncludes;
 
   /**
    * A list of execution data files to exclude from the report. May use wildcard characters (* and
    * ?). When not specified nothing will be excluded.
    */
-  @Parameter List<String> dataFileExcludes;
+  @Parameter private List<String> dataFileExcludes;
 
   /**
    * A list of modules/projects to exclude from the report. Must match the module artifactId. When
    * not specified nothing will be excluded.
    */
-  @Parameter List<String> excludeModules;
+  @Parameter private List<String> excludeModules;
 
   @Override
   public void execute() throws MojoExecutionException {

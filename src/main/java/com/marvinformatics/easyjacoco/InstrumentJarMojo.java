@@ -29,15 +29,26 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.jacoco.core.instr.Instrumenter;
 import org.jacoco.core.runtime.OfflineInstrumentationAccessGenerator;
 
+/**
+ * Maven Mojo for instrumenting jar files by injecting JaCoCo probe instructions to enable offline
+ * code coverage analysis.
+ *
+ * <p>This goal, named "instrument-jar", is executed during the package phase. It reads a specified
+ * source file (or jar), applies offline instrumentation using JaCoCo, and writes the resulting
+ * instrumented file to the provided destination.
+ */
 @Mojo(name = "instrument-jar", defaultPhase = LifecyclePhase.PACKAGE)
 public class InstrumentJarMojo extends AbstractMojo {
 
+  /** When set to true, instrumentation will be skipped. */
   @Parameter(property = "easyjacoco.skip", defaultValue = "false")
   private boolean skip;
 
+  /** The source file (or JAR) that will be instrumented. */
   @Parameter(property = "easyjacoco.source", required = true)
   private File source;
 
+  /** The target file for the instrumented output. */
   @Parameter(property = "easyjacoco.destination", required = true)
   private File destination;
 
