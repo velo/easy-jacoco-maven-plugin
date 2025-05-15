@@ -76,6 +76,30 @@ public class ExampleProjectMavenBuildIT {
             "Coverage checks have not been met");
   }
 
+  @Test
+  void givenInstrumentProject_whenMavenCleanInstall_thenBuildSuccess() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    // Execute the Maven build.
+    TestResult result = runExample("examples/instrument-jar", mavenVersion);
+
+    System.out.println(result.buildOutput); // useful for debugging in the IDE
+
+    // Use AssertJ to assert that the build was successful.
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains(
+            "Skip instrumentation for external/IgnoreMe",
+            "Instrumenting class com/marvinformatics/easyjacoco/SimpleMath");
+  }
+
   private TestResult runExample(String example, String mavenVersion, String... args)
       throws IOException, MavenInvocationException, MavenExecutionException {
     // Locate the example project source directory.

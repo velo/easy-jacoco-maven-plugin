@@ -21,6 +21,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -28,6 +30,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jacoco.core.instr.Instrumenter;
 import org.jacoco.core.runtime.OfflineInstrumentationAccessGenerator;
+import org.jacoco.core.runtime.WildcardMatcher;
 
 /**
  * Maven Mojo for instrumenting jar files by injecting JaCoCo probe instructions to enable offline
@@ -39,6 +42,18 @@ import org.jacoco.core.runtime.OfflineInstrumentationAccessGenerator;
  */
 @Mojo(name = "instrument-jar", defaultPhase = LifecyclePhase.PACKAGE)
 public class InstrumentJarMojo extends AbstractMojo {
+  /**
+   * A list of class files to include in coverage check. May use wildcard characters (* and ?). When
+   * not specified everything will be included.
+   */
+  @Parameter private List<String> includes;
+
+  /**
+   * List of class files to exclude from the coverage check. Supports wildcards.
+   *
+   * <p>Default: None.
+   */
+  @Parameter private List<String> excludes;
 
   /** When set to true, instrumentation will be skipped. */
   @Parameter(property = "easyjacoco.skip", defaultValue = "false")
@@ -61,10 +76,40 @@ public class InstrumentJarMojo extends AbstractMojo {
 
     getLog().info("Instrumenting file: " + source.getAbsolutePath());
 
+    if (source.equals(destination)) {
+      source = new File(source.getParentFile(), source.getName() + ".original");
+      getLog().info("In place instrumentation, renamed original file to: " + source);
+      destination.renameTo(source);
+    }
+
     if (destination.exists()) {
       destination.delete();
     }
-    var instrumenter = new Instrumenter(new OfflineInstrumentationAccessGenerator());
+
+    if (includes == null) {
+      includes = List.of("**/*.class");
+    }
+    if (excludes == null) {
+      excludes = List.of();
+    }
+
+    WildcardMatcher includes =
+        new WildcardMatcher(this.includes.stream().collect(Collectors.joining(":")));
+    WildcardMatcher excludes =
+        new WildcardMatcher(this.excludes.stream().collect(Collectors.joining(":")));
+
+    var instrumenter =
+        new Instrumenter(new OfflineInstrumentationAccessGenerator()) {
+          public byte[] instrument(final byte[] buffer, final String name) throws IOException {
+            var classname = name.split("@")[1];
+            if (includes.matches(classname) && !excludes.matches(classname)) {
+              getLog().debug(String.format("Instrumenting class %s", classname));
+              return super.instrument(buffer, classname);
+            }
+            getLog().debug(String.format("Skip instrumentation for %s", classname));
+            return buffer;
+          }
+        };
 
     destination.getParentFile().mkdirs();
     try (final InputStream input = new FileInputStream(source);

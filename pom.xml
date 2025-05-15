@@ -549,6 +549,9 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
           <name>m2e.version</name>
         </property>
       </activation>
+      <properties>
+        <gcf.skip>true</gcf.skip>
+      </properties>
       <build>
         <directory>${project.basedir}/m2e-target</directory>
       </build>
