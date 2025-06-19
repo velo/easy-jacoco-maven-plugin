@@ -66,6 +66,9 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
   <properties>
     <maven.version>3.9.9</maven.version>
     <jacoco.version>0.8.13</jacoco.version>
+    <!-- Java compatibility version -->
+    <main.java.version>11</main.java.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -175,35 +178,10 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <!-- Ensure main source tree compiles to Java ${main.java.version} bytecode. -->
-          <execution>
-            <id>default-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <phase>compile</phase>
-            <configuration>
-              <release>11</release>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-toolchains-plugin</artifactId>
-        <version>3.2.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>select-jdk-toolchain</goal>
-            </goals>
-            <configuration>
-              <version>11</version>
-            </configuration>
-          </execution>
-        </executions>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <release>${main.java.version}</release>
+        </configuration>
       </plugin>
 
       <plugin>

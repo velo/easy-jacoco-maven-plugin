@@ -16,7 +16,7 @@ In this example:
 
 ## Prerequisites
 
-- **Java:** Version 17 or later (ensure `JAVA_HOME` is set appropriately)
+- **Java:** Version 11 or later (ensure `JAVA_HOME` is set appropriately)
 - **Maven:** Version 3.9.x or compatible
 
 ## How to Run the Example

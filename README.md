@@ -81,7 +81,7 @@ Easy JaCoCo comes with several Maven goals to generate reports or perform projec
 - **Skipping Coverage:** You can disable Easy JaCoCo by setting the property `-Deasyjacoco.skip=true` during your Maven build.
 - **Integration with CI/SonarQube:** The aggregated XML report (`jacoco-aggregate/jacoco.xml`) can be fed directly into tools like SonarQube for unified coverage analysis.
 - **How It Works:** Easy JaCoCo primarily uses the on-the-fly JaCoCo agent to collect coverage during test execution, but it will also include any offline `.exec` instrumentation files found in the project.
-- **Requirements:** The plugin requires Maven 3.9.9+ and Java 17+.
+- **Requirements:** The plugin requires Maven 3.9.9+ and Java 11+.
 
 For more detailed goal configuration and usage examples, please refer to the docs for each goal listed above.
 
