@@ -364,7 +364,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
             <goals>
               <goal>install</goal>
             </goals>
-            <phase>package</phase>
+            <phase>pre-integration-test</phase>
           </execution>
         </executions>
       </plugin>
