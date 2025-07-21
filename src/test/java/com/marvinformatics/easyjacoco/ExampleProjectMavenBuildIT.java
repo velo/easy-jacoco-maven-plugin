@@ -50,8 +50,6 @@ public class ExampleProjectMavenBuildIT {
     // Execute the Maven build.
     TestResult result = runExample("examples/basic", mavenVersion);
 
-    System.out.println(result.buildOutput); // useful for debugging in the IDE
-
     // Use AssertJ to assert that the build was successful.
     assertThat(result.exitCode)
         .as(
@@ -204,6 +202,9 @@ public class ExampleProjectMavenBuildIT {
     // Execute the Maven build.
     InvocationResult invocationResult = invoker.execute(request);
     String buildOutput = outputStream.toString();
+    System.out.println(buildOutput); // useful for debugging in the IDE
+
+    assertThat(buildOutput).contains("Registering jacoco related plugins on all modules");
 
     assertThat(jacocoDest)
         .as("Maven execution terminated without generating jacoco report")

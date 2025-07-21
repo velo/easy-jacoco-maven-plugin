@@ -64,7 +64,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
   </scm>
 
   <properties>
-    <maven.version>3.9.9</maven.version>
+    <maven.version>3.9.11</maven.version>
     <jacoco.version>0.8.13</jacoco.version>
     <!-- Java compatibility version -->
     <main.java.version>11</main.java.version>
@@ -86,7 +86,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>4.0.2</version>
+        <version>3.6.0</version>
         <!-- maven runs with a different version, causing all short of class not found issues-->
         <scope>runtime</scope>
       </dependency>
@@ -104,6 +104,12 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>3.6.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
