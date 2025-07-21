@@ -58,12 +58,21 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       return;
     }
 
+    MavenProject topLevelProject = session.getTopLevelProject();
+
+    if (session.getProjects().size() == 1 && isNonModularProject(topLevelProject)) {
+      log.warn(
+          "EasyJacoco detected a non-modular project. This plugin is designed for multi-module Maven projects and will be skipped. "
+              + "For single-module projects, consider using the standard jacoco-maven-plugin directly. "
+              + "If you believe this is incorrect, you can force execution with -Deasyjacoco.skip=false.");
+      return;
+    }
+
     log.info("Registering jacoco related plugins on all modules");
     for (var project : session.getProjects()) {
       registerVanillaJacocoExecution(project);
     }
 
-    MavenProject topLevelProject = session.getTopLevelProject();
     if (session.getProjects().size() > 1) {
       log.debug("Detected multi-module project, registering project report");
       var reportProject =
@@ -74,6 +83,10 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       allProjects.add(reportProject);
       session.setProjects(allProjects);
     }
+  }
+
+  private boolean isNonModularProject(MavenProject project) {
+    return project.getModules() == null || project.getModules().isEmpty();
   }
 
   private MavenProject newReportProject(

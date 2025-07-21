@@ -24,6 +24,10 @@
   <artifactId>instrument-jar</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <properties>
+    <easy-jacoco.version>must pass a version using command like -Deasy-jacoco.version=0.1.1</easy-jacoco.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

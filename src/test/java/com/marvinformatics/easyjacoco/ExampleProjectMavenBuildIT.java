@@ -77,6 +77,29 @@ public class ExampleProjectMavenBuildIT {
   }
 
   @Test
+  void givenNonModularProject_whenMavenCleanInstall_thenShowsWarningAndSkips() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    // Execute the Maven build on the single-module example.
+    TestResult result = runExample("examples/single-module", mavenVersion, "validate");
+
+    System.out.println(result.buildOutput); // useful for debugging in the IDE
+
+    // Use AssertJ to assert that the build was successful.
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains("EasyJacoco detected a non-modular project")
+        .contains("This plugin is designed for multi-module Maven projects and will be skipped");
+  }
+
+  @Test
   void givenInstrumentProject_whenMavenCleanInstall_thenBuildSuccess() throws Exception {
     String mavenVersion =
         EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
@@ -116,15 +139,23 @@ public class ExampleProjectMavenBuildIT {
     // Use the temporary directory as the project directory for the Maven build.
     File projectDir = targetDir;
 
+    // Replace version placeholder in extensions.xml if it exists
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    File extensionsXml = new File(projectDir, ".mvn/extensions.xml");
+    if (extensionsXml.exists()) {
+      String content = Files.readString(extensionsXml.toPath());
+      content = content.replace("${easy-jacoco.version}", easyJacocoVersion);
+      Files.writeString(extensionsXml.toPath(), content);
+    }
+
     String jacocoVersion =
         EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
             .getProperty("version");
 
     if (args == null || args.length == 0 || (args.length == 1 && args[0] == null)) {
-      String easyJacocoVersion =
-          EasyJacocoLifecycleParticipant.readArtifactProperties(
-                  "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-              .getProperty("version");
       args =
           new String[] {
             "clean",
