@@ -68,7 +68,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
     <jacoco.version>0.8.13</jacoco.version>
     <!-- Java compatibility version -->
     <main.java.version>11</main.java.version>
-    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
