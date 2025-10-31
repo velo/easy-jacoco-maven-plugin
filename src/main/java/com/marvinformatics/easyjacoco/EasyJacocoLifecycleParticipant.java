@@ -17,10 +17,14 @@ package com.marvinformatics.easyjacoco;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -70,6 +74,8 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
 
     MavenProject topLevelProject = session.getTopLevelProject();
 
+    syncExtensionVersion(session, topLevelProject);
+
     if (session.getProjects().size() == 1 && isNonModularProject(topLevelProject)) {
       log.warn(
           "EasyJacoco detected a non-modular project. This plugin is designed for multi-module Maven projects and will be skipped. "
@@ -105,6 +111,71 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
                 + reportProject.getArtifactId());
       }
     }
+  }
+
+  private void syncExtensionVersion(MavenSession session, MavenProject topLevelProject) {
+    String syncExtensionVersion =
+        readConfigurationValue(topLevelProject, "syncExtensionVersion", "true");
+    if (!"true".equalsIgnoreCase(syncExtensionVersion)) {
+      log.debug("Extension version sync is disabled via configuration");
+      return;
+    }
+
+    if (isBatchMode(session)) {
+      log.debug("Skipping extension version sync in batch mode");
+      return;
+    }
+
+    try {
+      Properties pluginProps =
+          readArtifactProperties("com.marvinformatics.jacoco", "easy-jacoco-maven-plugin");
+      String currentVersion = pluginProps.getProperty("version");
+      if (currentVersion == null || currentVersion.trim().isEmpty()) {
+        log.debug("Could not determine current plugin version, skipping extension sync");
+        return;
+      }
+
+      File extensionsXml = new File(topLevelProject.getBasedir(), ".mvn/extensions.xml");
+      if (!extensionsXml.exists()) {
+        log.debug("No .mvn/extensions.xml file found, skipping version sync");
+        return;
+      }
+
+      Path extensionsPath = extensionsXml.toPath();
+      String content = Files.readString(extensionsPath);
+
+      Pattern versionPattern =
+          Pattern.compile(
+              "(<groupId>com\\.marvinformatics\\.jacoco</groupId>\\s*"
+                  + "<artifactId>easy-jacoco-maven-plugin</artifactId>\\s*"
+                  + "<version>)([^<]+)(</version>)",
+              Pattern.DOTALL);
+      Matcher matcher = versionPattern.matcher(content);
+
+      if (matcher.find()) {
+        String extensionVersion = matcher.group(2);
+        if (!currentVersion.equals(extensionVersion)) {
+          String updatedContent = matcher.replaceFirst("$1" + currentVersion + "$3");
+          Files.writeString(extensionsPath, updatedContent);
+          log.warn(
+              "Updated easy-jacoco-maven-plugin version in .mvn/extensions.xml from "
+                  + extensionVersion
+                  + " to "
+                  + currentVersion);
+        } else {
+          log.debug("Extension version already matches plugin version: " + currentVersion);
+        }
+      } else {
+        log.debug("Could not find easy-jacoco-maven-plugin entry in extensions.xml");
+      }
+    } catch (Exception e) {
+      log.debug("Failed to sync extension version: " + e.getMessage(), e);
+    }
+  }
+
+  private boolean isBatchMode(MavenSession session) {
+    return session.getRequest().isInteractiveMode() == false
+        || "true".equalsIgnoreCase(session.getUserProperties().getProperty("maven.batch.mode"));
   }
 
   private boolean isNonModularProject(MavenProject project) {
