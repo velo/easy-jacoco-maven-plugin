@@ -37,15 +37,31 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.apache.maven.shared.invoker.PrintStreamHandler;
 import org.apache.maven.shared.utils.cli.CommandLineException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ExampleProjectMavenBuildIT {
 
-  @Test
-  void givenExampleProject_whenMavenCleanInstallWithJacoco_thenBuildSuccess() throws Exception {
-    String mavenVersion =
+  private static String mavenVersion;
+  private static String easyJacocoVersion;
+  private static String jacocoVersion;
+
+  @BeforeAll
+  static void setUp() throws MavenExecutionException {
+    mavenVersion =
         EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
             .getProperty("version");
+    easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+  }
+
+  @Test
+  void givenExampleProject_whenMavenCleanInstallWithJacoco_thenBuildSuccess() throws Exception {
 
     // Execute the Maven build.
     TestResult result = runExample("examples/basic", mavenVersion);
@@ -78,10 +94,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenNonModularProject_whenMavenCleanInstall_thenShowsWarningAndSkips() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
     // Execute the Maven build on the single-module example.
     TestResult result = runExample("examples/single-module", mavenVersion, "validate");
 
@@ -101,10 +113,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenInstrumentProject_whenMavenCleanInstall_thenBuildSuccess() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
     // Execute the Maven build.
     TestResult result = runExample("examples/instrument-jar", mavenVersion);
 
@@ -125,18 +133,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenReactorWithProjectSelector_whenBuild_thenSkipsWithWarning() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/basic",
@@ -163,18 +159,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenReactorWithResumeFrom_whenBuild_thenSkipsWithWarning() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/basic",
@@ -201,18 +185,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenReactorWithAlsoMake_whenBuild_thenSkipsWithWarning() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/basic",
@@ -239,10 +211,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenLegacyMode_whenBuild_thenGeneratesInTargetDirectory() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
     TestResult result = runExample("examples/basic", mavenVersion);
 
     System.out.println(result.buildOutput);
@@ -261,18 +229,6 @@ public class ExampleProjectMavenBuildIT {
   @Test
   void givenBasicExampleWithPersistentModeOverride_whenBuild_thenCreatesPersistentCoverage()
       throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/basic",
@@ -297,18 +253,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenPersistentMode_whenBuild_thenGeneratesInCoverageDirectory() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/persistent-mode",
@@ -332,18 +276,6 @@ public class ExampleProjectMavenBuildIT {
 
   @Test
   void givenPersistentModeWithAddToParent_whenBuild_thenParentPomUpdated() throws Exception {
-    String mavenVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
-            .getProperty("version");
-
-    String easyJacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties(
-                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
-            .getProperty("version");
-    String jacocoVersion =
-        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
-            .getProperty("version");
-
     TestResult result =
         runExample(
             "examples/persistent-mode",
