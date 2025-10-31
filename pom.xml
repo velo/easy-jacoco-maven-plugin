@@ -155,7 +155,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.27.1</version>
+      <version>1.28.0</version>
       <scope>test</scope>
     </dependency>
 
