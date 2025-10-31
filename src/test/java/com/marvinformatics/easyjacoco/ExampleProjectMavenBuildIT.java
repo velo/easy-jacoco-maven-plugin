@@ -259,6 +259,43 @@ public class ExampleProjectMavenBuildIT {
   }
 
   @Test
+  void givenBasicExampleWithPersistentModeOverride_whenBuild_thenCreatesPersistentCoverage()
+      throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/basic",
+            mavenVersion,
+            "install",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion,
+            "-Deasyjacoco.coverageMode=PERSISTENT");
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .doesNotContain("LEGACY coverage mode is deprecated")
+        .contains("Creating new pom.xml in PERSISTENT mode");
+  }
+
+  @Test
   void givenPersistentMode_whenBuild_thenGeneratesInCoverageDirectory() throws Exception {
     String mavenVersion =
         EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
@@ -290,9 +327,7 @@ public class ExampleProjectMavenBuildIT {
 
     assertThat(result.buildOutput)
         .doesNotContain("LEGACY coverage mode is deprecated")
-        .containsAnyOf(
-            "Creating new pom.xml in PERSISTENT mode",
-            "Existing pom.xml found, updating it in PERSISTENT mode");
+        .contains("Existing pom.xml found, updating it in PERSISTENT mode");
   }
 
   @Test
@@ -326,9 +361,7 @@ public class ExampleProjectMavenBuildIT {
         .isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .containsAnyOf(
-            "Adding coverage module 'coverage' to parent pom.xml",
-            "Coverage module 'coverage' already exists in parent pom.xml");
+        .contains("Coverage module 'coverage' already exists in parent pom.xml");
 
     // Verify coverage pom.xml was updated correctly
     String coveragePomContent =

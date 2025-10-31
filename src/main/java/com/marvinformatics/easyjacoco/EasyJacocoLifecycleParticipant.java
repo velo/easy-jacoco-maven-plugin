@@ -230,6 +230,14 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
 
   private String readConfigurationValue(
       MavenProject topLevelProject, String configName, String defaultValue) {
+    // Check system property first (allows command-line override)
+    String sysPropName = "easyjacoco." + configName;
+    String sysPropValue = System.getProperty(sysPropName);
+    if (sysPropValue != null && !sysPropValue.trim().isEmpty()) {
+      return sysPropValue.trim();
+    }
+
+    // Fall back to plugin configuration
     var plugin = topLevelProject.getPlugin("com.marvinformatics.jacoco:easy-jacoco-maven-plugin");
     if (plugin == null || !(plugin.getConfiguration() instanceof Xpp3Dom)) {
       return defaultValue;
