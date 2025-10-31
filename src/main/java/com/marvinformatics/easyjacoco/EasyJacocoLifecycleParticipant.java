@@ -60,6 +60,14 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       return;
     }
 
+    if (hasReactorModifiers(session)) {
+      log.warn(
+          "EasyJacoco is designed to run on the full reactor. "
+              + "Skipping due to reactor modifiers (-pl, -rf, -am, -amd). "
+              + "To generate coverage reports, run Maven without these options.");
+      return;
+    }
+
     MavenProject topLevelProject = session.getTopLevelProject();
 
     if (session.getProjects().size() == 1 && isNonModularProject(topLevelProject)) {
@@ -91,6 +99,27 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
     return project.getModules() == null || project.getModules().isEmpty();
   }
 
+  private boolean hasReactorModifiers(MavenSession session) {
+    var request = session.getRequest();
+
+    if (request.getSelectedProjects() != null && !request.getSelectedProjects().isEmpty()) {
+      log.debug("Detected -pl (project list) reactor modifier");
+      return true;
+    }
+
+    if (request.getResumeFrom() != null && !request.getResumeFrom().isEmpty()) {
+      log.debug("Detected -rf (resume from) reactor modifier");
+      return true;
+    }
+
+    if (request.getMakeBehavior() != null && !request.getMakeBehavior().toString().equals("NONE")) {
+      log.debug("Detected -am/-amd (also make) reactor modifier: " + request.getMakeBehavior());
+      return true;
+    }
+
+    return false;
+  }
+
   private MavenProject newReportProject(
       MavenProject topLevelProject,
       List<MavenProject> reactorProjects,
@@ -101,7 +130,32 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
             ? topLevelProject.getArtifactId().replace("-parent", "-coverage")
             : topLevelProject.getArtifactId() + "-coverage";
 
-    String coverageDir = readConfigurationValue(topLevelProject, "coverageProjectDir", "coverage");
+    String coverageModeStr = readConfigurationValue(topLevelProject, "coverageMode", "LEGACY");
+    CoverageMode coverageMode;
+    try {
+      coverageMode = CoverageMode.valueOf(coverageModeStr.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      log.warn("Invalid coverageMode value: " + coverageModeStr + ". Defaulting to LEGACY.");
+      coverageMode = CoverageMode.LEGACY;
+    }
+
+    if (coverageMode == CoverageMode.LEGACY) {
+      log.warn(
+          "LEGACY coverage mode is deprecated and will be removed in the next major version. "
+              + "Please migrate to PERSISTENT mode by setting <coverageMode>PERSISTENT</coverageMode> "
+              + "in the plugin configuration.");
+    }
+
+    boolean addToParentModules =
+        Boolean.parseBoolean(readConfigurationValue(topLevelProject, "addToParentModules", "true"));
+
+    String coverageDir;
+    if (coverageMode == CoverageMode.LEGACY) {
+      coverageDir = "target/coverage";
+    } else {
+      coverageDir = readConfigurationValue(topLevelProject, "coverageProjectDir", "coverage");
+    }
+
     var coverageProjectDir = new File(topLevelProject.getBasedir(), coverageDir);
     var generatedPom = new File(coverageProjectDir, "pom.xml");
 
@@ -114,27 +168,17 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       log.info("Generating report project: " + projectArtifactId);
 
       Model pom;
-      if (generatedPom.exists()) {
-        log.info("Existing pom.xml found, updating it: " + generatedPom);
-        pom = modelReader.read(generatedPom, null);
+      if (coverageMode == CoverageMode.LEGACY) {
+        log.info("Creating new pom.xml in LEGACY mode (replacing any existing): " + generatedPom);
+        pom = createNewCoveragePom(topLevelProject, projectArtifactId);
       } else {
-        log.info("Creating new pom.xml: " + generatedPom);
-        pom = new Model();
-        pom.setModelVersion(topLevelProject.getModelVersion());
-        Parent parent = new Parent();
-        parent.setGroupId(topLevelProject.getGroupId());
-        parent.setArtifactId(topLevelProject.getArtifactId());
-        parent.setVersion(topLevelProject.getVersion());
-
-        pom.setGroupId(topLevelProject.getGroupId());
-        pom.setParent(parent);
-        pom.setVersion(topLevelProject.getVersion());
-        pom.setPackaging("pom");
-        pom.setArtifactId(projectArtifactId);
-
-        Build build = new Build();
-        build.setOutputDirectory(topLevelProject.getBuild().getOutputDirectory());
-        pom.setBuild(build);
+        if (generatedPom.exists()) {
+          log.info("Existing pom.xml found, updating it in PERSISTENT mode: " + generatedPom);
+          pom = modelReader.read(generatedPom, null);
+        } else {
+          log.info("Creating new pom.xml in PERSISTENT mode: " + generatedPom);
+          pom = createNewCoveragePom(topLevelProject, projectArtifactId);
+        }
       }
 
       Properties extraProperties = readExtraProperties(topLevelProject);
@@ -151,9 +195,18 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       boolean overrideDependencies =
           Boolean.parseBoolean(
               readConfigurationValue(topLevelProject, "overrideDependencies", "false"));
-      mergeDependencies(pom, newDependencies, overrideDependencies);
+
+      if (coverageMode == CoverageMode.LEGACY) {
+        pom.setDependencies(newDependencies);
+      } else {
+        mergeDependencies(pom, newDependencies, overrideDependencies);
+      }
 
       modelWriter.write(generatedPom, null, pom);
+
+      if (coverageMode == CoverageMode.PERSISTENT && addToParentModules) {
+        addCoverageModuleToParentPom(topLevelProject, coverageDir);
+      }
 
       return projectBuilder.build(generatedPom, projectBuildingRequest).getProject();
 
@@ -336,6 +389,57 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
     } catch (IOException e) {
       throw new MavenExecutionException(
           "Unable to read properties for " + groupId + ":" + artifactId, e);
+    }
+  }
+
+  private Model createNewCoveragePom(MavenProject topLevelProject, String projectArtifactId) {
+    Model pom = new Model();
+    pom.setModelVersion(topLevelProject.getModelVersion());
+    Parent parent = new Parent();
+    parent.setGroupId(topLevelProject.getGroupId());
+    parent.setArtifactId(topLevelProject.getArtifactId());
+    parent.setVersion(topLevelProject.getVersion());
+
+    pom.setGroupId(topLevelProject.getGroupId());
+    pom.setParent(parent);
+    pom.setVersion(topLevelProject.getVersion());
+    pom.setPackaging("pom");
+    pom.setArtifactId(projectArtifactId);
+
+    Build build = new Build();
+    build.setOutputDirectory(topLevelProject.getBuild().getOutputDirectory());
+    pom.setBuild(build);
+
+    return pom;
+  }
+
+  private void addCoverageModuleToParentPom(MavenProject topLevelProject, String coverageDir)
+      throws MavenExecutionException {
+    File parentPomFile = topLevelProject.getFile();
+    if (parentPomFile == null || !parentPomFile.exists()) {
+      log.warn(
+          "Parent pom.xml not found, cannot add coverage module to parent. "
+              + "The coverage module will only be added to the runtime reactor.");
+      return;
+    }
+
+    try {
+      Model parentPom = modelReader.read(parentPomFile, null);
+
+      if (parentPom.getModules() == null) {
+        parentPom.setModules(new ArrayList<>());
+      }
+
+      if (!parentPom.getModules().contains(coverageDir)) {
+        log.info("Adding coverage module '" + coverageDir + "' to parent pom.xml");
+        parentPom.getModules().add(coverageDir);
+        modelWriter.write(parentPomFile, null, parentPom);
+      } else {
+        log.debug("Coverage module '" + coverageDir + "' already exists in parent pom.xml");
+      }
+    } catch (IOException e) {
+      throw new MavenExecutionException(
+          "Failed to add coverage module to parent pom.xml: " + parentPomFile, e);
     }
   }
 }

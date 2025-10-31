@@ -123,6 +123,209 @@ public class ExampleProjectMavenBuildIT {
             "Instrumenting class com/marvinformatics/easyjacoco/SimpleMath");
   }
 
+  @Test
+  void givenReactorWithProjectSelector_whenBuild_thenSkipsWithWarning() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/basic",
+            mavenVersion,
+            "clean",
+            "validate",
+            "-pl",
+            "module-1",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains("EasyJacoco is designed to run on the full reactor")
+        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+  }
+
+  @Test
+  void givenReactorWithResumeFrom_whenBuild_thenSkipsWithWarning() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/basic",
+            mavenVersion,
+            "clean",
+            "validate",
+            "-rf",
+            "module-1",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains("EasyJacoco is designed to run on the full reactor")
+        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+  }
+
+  @Test
+  void givenReactorWithAlsoMake_whenBuild_thenSkipsWithWarning() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/basic",
+            mavenVersion,
+            "validate",
+            "-pl",
+            "module-1",
+            "-am",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains("EasyJacoco is designed to run on the full reactor")
+        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+  }
+
+  @Test
+  void givenLegacyMode_whenBuild_thenGeneratesInTargetDirectory() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    TestResult result = runExample("examples/basic", mavenVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .contains("LEGACY coverage mode is deprecated")
+        .contains("Creating new pom.xml in LEGACY mode");
+  }
+
+  @Test
+  void givenPersistentMode_whenBuild_thenGeneratesInCoverageDirectory() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/persistent-mode",
+            mavenVersion,
+            "install",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput)
+        .doesNotContain("LEGACY coverage mode is deprecated")
+        .contains("Creating new pom.xml in PERSISTENT mode");
+  }
+
+  @Test
+  void givenPersistentModeWithAddToParent_whenBuild_thenParentPomUpdated() throws Exception {
+    String mavenVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.apache.maven", "maven-core")
+            .getProperty("version");
+
+    String easyJacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties(
+                "com.marvinformatics.jacoco", "easy-jacoco-maven-plugin")
+            .getProperty("version");
+    String jacocoVersion =
+        EasyJacocoLifecycleParticipant.readArtifactProperties("org.jacoco", "org.jacoco.agent.rt")
+            .getProperty("version");
+
+    TestResult result =
+        runExample(
+            "examples/persistent-mode",
+            mavenVersion,
+            "install",
+            "-Deasy-jacoco.version=" + easyJacocoVersion,
+            "-Djacoco.version=" + jacocoVersion);
+
+    System.out.println(result.buildOutput);
+
+    assertThat(result.exitCode)
+        .as(
+            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
+            result.exitCode, result.buildOutput)
+        .isEqualTo(0);
+
+    assertThat(result.buildOutput).contains("Adding coverage module 'coverage' to parent pom.xml");
+  }
+
   private TestResult runExample(String example, String mavenVersion, String... args)
       throws IOException, MavenInvocationException, MavenExecutionException {
     // Locate the example project source directory.
@@ -187,6 +390,8 @@ public class ExampleProjectMavenBuildIT {
             + "-runtime.jar";
     // Set the destination file for the coverage report under the temporary project directory.
     File jacocoDest = new File(projectDir, "target/jacoco.exec");
+    // Ensure the target directory exists for the jacoco agent
+    jacocoDest.getParentFile().mkdirs();
     // Compose the JAVA_OPTS argument that injects the agent.
     String mavenOpts =
         "-javaagent:" + jacocoAgentPath + "=destfile=" + jacocoDest.getAbsolutePath();
