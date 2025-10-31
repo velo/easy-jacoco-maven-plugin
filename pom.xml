@@ -64,7 +64,7 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
   </scm>
 
   <properties>
-    <maven.version>3.9.9</maven.version>
+    <maven.version>3.9.11</maven.version>
     <jacoco.version>0.8.14</jacoco.version>
     <!-- Java compatibility version -->
     <main.java.version>11</main.java.version>
