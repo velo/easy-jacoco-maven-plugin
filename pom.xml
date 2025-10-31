@@ -545,14 +545,6 @@ PROJECT wide coverage check, so you can requite the whole project to have 70% co
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>central</publishingServerId>
-
-              <excludeArtifacts>
-                <!-- artifacts that only exists to support integration tests and as samples-->
-                <excludeArtifact>helpers</excludeArtifact>
-                <excludeArtifact>system-functions-sample</excludeArtifact>
-                <excludeArtifact>udf-sample</excludeArtifact>
-              </excludeArtifacts>
-
               <autoPublish>true</autoPublish>
             </configuration>
           </plugin>
