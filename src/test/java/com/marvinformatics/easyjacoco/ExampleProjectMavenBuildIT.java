@@ -68,12 +68,7 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput); // useful for debugging in the IDE
 
-    // Use AssertJ to assert that the build was successful.
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
         // verify coverage pom.xml was written to disk
@@ -99,16 +94,12 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput); // useful for debugging in the IDE
 
-    // Use AssertJ to assert that the build was successful.
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .contains("EasyJacoco detected a non-modular project")
-        .contains("This plugin is designed for multi-module Maven projects and will be skipped");
+        .contains(
+            "EasyJacoco detected a non-modular project",
+            "This plugin is designed for multi-module Maven projects and will be skipped");
   }
 
   @Test
@@ -118,12 +109,7 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput); // useful for debugging in the IDE
 
-    // Use AssertJ to assert that the build was successful.
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
         .contains(
@@ -153,8 +139,9 @@ public class ExampleProjectMavenBuildIT {
         .isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .contains("EasyJacoco is designed to run on the full reactor")
-        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+        .contains(
+            "EasyJacoco is designed to run on the full reactor",
+            "Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
   }
 
   @Test
@@ -179,8 +166,9 @@ public class ExampleProjectMavenBuildIT {
         .isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .contains("EasyJacoco is designed to run on the full reactor")
-        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+        .contains(
+            "EasyJacoco is designed to run on the full reactor",
+            "Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
   }
 
   @Test
@@ -205,8 +193,9 @@ public class ExampleProjectMavenBuildIT {
         .isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .contains("EasyJacoco is designed to run on the full reactor")
-        .contains("Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
+        .contains(
+            "EasyJacoco is designed to run on the full reactor",
+            "Skipping due to reactor modifiers (-pl, -rf, -am, -amd)");
   }
 
   @Test
@@ -215,15 +204,10 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput);
 
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
-        .contains("LEGACY coverage mode is deprecated")
-        .contains("Creating new pom.xml in LEGACY mode");
+        .contains("LEGACY coverage mode is deprecated", "Creating new pom.xml in LEGACY mode");
   }
 
   @Test
@@ -240,11 +224,7 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput);
 
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
         .doesNotContain("LEGACY coverage mode is deprecated")
@@ -286,11 +266,7 @@ public class ExampleProjectMavenBuildIT {
 
     System.out.println(result.buildOutput);
 
-    assertThat(result.exitCode)
-        .as(
-            "Maven build should succeed (exit code 0) but got %s. Build output:%n%s",
-            result.exitCode, result.buildOutput)
-        .isEqualTo(0);
+    assertThat(result.exitCode).isEqualTo(0);
 
     assertThat(result.buildOutput)
         .contains("Coverage module 'coverage' already exists in parent pom.xml");
@@ -299,28 +275,18 @@ public class ExampleProjectMavenBuildIT {
     String coveragePomContent =
         Files.readString(result.projectDir.toPath().resolve("coverage/pom.xml"));
     assertThat(coveragePomContent)
-        .as("Coverage pom should preserve custom property")
-        .contains("<custom.property>should-be-preserved</custom.property>");
-    assertThat(coveragePomContent)
-        .as("Coverage pom should preserve name")
-        .contains("<name>Easy JaCoCo Persistent Mode Example - Coverage Aggregator</name>");
-    assertThat(coveragePomContent)
-        .as("Coverage pom should preserve description")
         .contains(
-            "<description>Aggregated coverage reports for all modules. This pom is generated and can be customized.</description>");
-    assertThat(coveragePomContent)
-        .as("Coverage pom should have module-1 dependency populated")
-        .contains("<artifactId>module-1</artifactId>");
+            "<custom.property>should-be-preserved</custom.property>",
+            "<name>Easy JaCoCo Persistent Mode Example - Coverage Aggregator</name>",
+            "<description>Aggregated coverage reports for all modules. This pom is generated and can be customized.</description>",
+            "<artifactId>module-1</artifactId>");
   }
 
   private TestResult runExample(String example, String mavenVersion, String... args)
       throws IOException, MavenInvocationException, MavenExecutionException {
     // Locate the example project source directory.
     File srcProjectDir = new File(example);
-    assertThat(srcProjectDir)
-        .as("Example project directory should exist and be a directory")
-        .exists()
-        .isDirectory();
+    assertThat(srcProjectDir).exists().isDirectory();
 
     // Copy the example project to a temporary directory under "target/"
     File targetDir = new File("target/testing", "example-temp-" + System.currentTimeMillis());
@@ -397,9 +363,7 @@ public class ExampleProjectMavenBuildIT {
     InvocationResult invocationResult = invoker.execute(request);
     String buildOutput = outputStream.toString();
 
-    assertThat(jacocoDest)
-        .as("Maven execution terminated without generating jacoco report")
-        .exists();
+    assertThat(jacocoDest).exists();
 
     return new TestResult(
         buildOutput,
