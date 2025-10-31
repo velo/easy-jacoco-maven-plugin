@@ -290,7 +290,9 @@ public class ExampleProjectMavenBuildIT {
 
     assertThat(result.buildOutput)
         .doesNotContain("LEGACY coverage mode is deprecated")
-        .contains("Creating new pom.xml in PERSISTENT mode");
+        .containsAnyOf(
+            "Creating new pom.xml in PERSISTENT mode",
+            "Existing pom.xml found, updating it in PERSISTENT mode");
   }
 
   @Test
@@ -323,7 +325,27 @@ public class ExampleProjectMavenBuildIT {
             result.exitCode, result.buildOutput)
         .isEqualTo(0);
 
-    assertThat(result.buildOutput).contains("Adding coverage module 'coverage' to parent pom.xml");
+    assertThat(result.buildOutput)
+        .containsAnyOf(
+            "Adding coverage module 'coverage' to parent pom.xml",
+            "Coverage module 'coverage' already exists in parent pom.xml");
+
+    // Verify coverage pom.xml was updated correctly
+    String coveragePomContent =
+        Files.readString(result.projectDir.toPath().resolve("coverage/pom.xml"));
+    assertThat(coveragePomContent)
+        .as("Coverage pom should preserve custom property")
+        .contains("<custom.property>should-be-preserved</custom.property>");
+    assertThat(coveragePomContent)
+        .as("Coverage pom should preserve name")
+        .contains("<name>Easy JaCoCo Persistent Mode Example - Coverage Aggregator</name>");
+    assertThat(coveragePomContent)
+        .as("Coverage pom should preserve description")
+        .contains(
+            "<description>Aggregated coverage reports for all modules. This pom is generated and can be customized.</description>");
+    assertThat(coveragePomContent)
+        .as("Coverage pom should have module-1 dependency populated")
+        .contains("<artifactId>module-1</artifactId>");
   }
 
   private TestResult runExample(String example, String mavenVersion, String... args)
@@ -415,7 +437,10 @@ public class ExampleProjectMavenBuildIT {
         .exists();
 
     return new TestResult(
-        buildOutput, invocationResult.getExecutionException(), invocationResult.getExitCode());
+        buildOutput,
+        invocationResult.getExecutionException(),
+        invocationResult.getExitCode(),
+        projectDir);
   }
 
   /** Recursively copies a directory. */
@@ -446,11 +471,17 @@ public class ExampleProjectMavenBuildIT {
     final String buildOutput;
     final CommandLineException executionException;
     final int exitCode;
+    final File projectDir;
 
-    public TestResult(String buildOutput, CommandLineException executionException, int exitCode) {
+    public TestResult(
+        String buildOutput,
+        CommandLineException executionException,
+        int exitCode,
+        File projectDir) {
       this.buildOutput = buildOutput;
       this.executionException = executionException;
       this.exitCode = exitCode;
+      this.projectDir = projectDir;
     }
   }
 }

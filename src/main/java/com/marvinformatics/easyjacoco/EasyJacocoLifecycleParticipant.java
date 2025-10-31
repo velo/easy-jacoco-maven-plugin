@@ -89,9 +89,21 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
           newReportProject(
               topLevelProject, session.getProjects(), session.getProjectBuildingRequest());
 
-      var allProjects = new ArrayList<>(session.getProjects());
-      allProjects.add(reportProject);
-      session.setProjects(allProjects);
+      // Only add the coverage project to the reactor if it's not already there
+      boolean coverageProjectExists =
+          session.getProjects().stream()
+              .anyMatch(p -> p.getArtifactId().equals(reportProject.getArtifactId()));
+
+      if (!coverageProjectExists) {
+        var allProjects = new ArrayList<>(session.getProjects());
+        allProjects.add(reportProject);
+        session.setProjects(allProjects);
+        log.debug("Added coverage project to reactor: " + reportProject.getArtifactId());
+      } else {
+        log.debug(
+            "Coverage project already in reactor, skipping addition: "
+                + reportProject.getArtifactId());
+      }
     }
   }
 
@@ -189,6 +201,7 @@ public class EasyJacocoLifecycleParticipant extends AbstractMavenLifecyclePartic
       List<Dependency> newDependencies =
           reactorProjects.stream()
               .filter(reactorProject -> !reactorProject.equals(topLevelProject))
+              .filter(reactorProject -> !reactorProject.getArtifactId().equals(projectArtifactId))
               .map(dep -> toDependency(dep))
               .collect(Collectors.toList());
 
